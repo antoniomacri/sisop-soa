@@ -13,11 +13,14 @@
 
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <cstring>
 #include <ctime>
 #include <cstdlib>
 #include <vector>
 #include <fstream>
+#include <list>
+#include <vector>
 
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -37,6 +40,24 @@
 
 using namespace std;
 
+struct server_s{
+    string addr;
+    string port;
+};
+
+struct cmd_s{
+    string cmd;
+    list <server_s> srv;
+};
+
+struct find_cmd : unary_function <cmd_s, bool>{
+    string cmd;
+    find_cmd(string cmd):cmd(cmd){}
+    bool operator() (cmd_s const& c) const{
+        return c.cmd == cmd;
+    }    
+};
+
 class Client {
     
 private:
@@ -45,38 +66,48 @@ private:
     struct hostent *server;
     int socketDescriptor;
     
-    struct provider{
-        std::string ipAddress;
-        std::string port;
-    };
+    list <cmd_s> srvList;
     
-    provider* providersList;
+public:
     
+    string name;
+    string data;
+    server_s srv;
+       
 private:
     
-    void makeSocket(const char*, const char*);
-    void closeSocket();
+    void openConnection(const char*, const char*);
+    void closeConnection();
+    
+    void insertSrv(const char*, const char*, const char*);
+    
+    void connectReg(const char*, const char*);
+    void disconnectReg();
+    
+    void connectSrv(const char*, const char*);
+    void disconnectSrv();
+
     
 public:
     Client();
     ~Client();
+
+    bool locateSrv(const char*, const char*, const char*);
+    bool checkSrvList(const char*);
     
-    void makeSocketClientRegistry(const char*, const char*);
-    void makeSocketClientProvider(const char*, const char*);
+    void srvReq(const char*, const char*, const char*);
+    void srvReq(const char*, const char*, const char*, const char*);
     
+    
+    char* getLocalFile(const char*);    
     bool decisor();
-    char* getRandomLocalFile(const char*);
-    
     void sys_err(const char*);
     void usr_err(const char*);
     void usr_msg(const char*);
     
     
     
-    
     //---
-        
-    char* getRandomLocalFile(const char*, const char*);
     void connectProvider(const char*);
     void requestService(const char* );
     
@@ -89,9 +120,36 @@ public:
 
 };
 
+
+
+
+
+
+
+
+
+
+// ---
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Client::Client(){
     
     usr_msg("Client is running...");
+    socketDescriptor = socket(AF_INET, SOCK_STREAM, 0);
+    serverAddress.sin_family = AF_INET;
         
 }
 
@@ -99,17 +157,14 @@ Client::~Client(){
     
 }
 
-void Client::makeSocket(const char* ipAddress, const char* port){
-    
-    socketDescriptor = socket(AF_INET, SOCK_STREAM, 0);
-    
+void Client::openConnection(const char* ipAddress, const char* port){
+        
     bzero(&serverAddress, sizeof(struct sockaddr_in));
-    serverAddress.sin_family = AF_INET;
     serverAddress.sin_port = htons( atoi(port) );
     
     server = gethostbyname(ipAddress);
     if(server == 0)
-        sys_err("Server not found");
+        sys_err("Server not reachable");
     
     bcopy( (char*) server->h_addr, (char*) &serverAddress.sin_addr.s_addr, server->h_length );
     
@@ -118,14 +173,30 @@ void Client::makeSocket(const char* ipAddress, const char* port){
     
 }
 
-void Client::closeSocket(){
+void Client::closeConnection(){
 
     close(socketDescriptor);
-    usr_msg("Socket closed");
     
 }
 
-void Client::makeSocketClientRegistry(const char* ipAddress, const char* port){
+void Client::disconnectReg(){
+    
+    closeConnection();
+    usr_msg("Socket closed");
+    usr_msg("Connection with service register is terminated");
+    
+}
+
+void Client::disconnectSrv(){
+    
+    closeConnection();
+    usr_msg("Socket closed");
+    usr_msg("Connection with service provider is terminated");
+    
+}
+
+
+void Client::connectReg(const char* ipAddress, const char* port){
     
     std::string str;
     str.append("Searching service repository at ");
@@ -135,13 +206,13 @@ void Client::makeSocketClientRegistry(const char* ipAddress, const char* port){
     str.append("...");
     usr_msg(str.c_str());
     
-    makeSocket(ipAddress, port);
+    openConnection(ipAddress, port);
     
     usr_msg("Service repository found");
 
 }
 
-void Client::makeSocketClientProvider(const char* ipAddress, const char* port){
+void Client::connectSrv(const char* ipAddress, const char* port){
     
     std::string str;
     str.append("Searching service provider at ");
@@ -151,27 +222,156 @@ void Client::makeSocketClientProvider(const char* ipAddress, const char* port){
     str.append("...");
     usr_msg(str.c_str());
     
-    makeSocket(ipAddress, port);
+    openConnection(ipAddress, port);
     
     usr_msg("Service provider found");
     
 }
 
-char* Client::getRandomLocalFile(const char* ext){
+
+
+bool Client::locateSrv(const char* regAddr, const char* regPort, const char* cmd){
+    
+    string msg("Searching service provider for '");
+    msg.append(cmd);
+    msg.append("'...");
+    usr_msg(msg.c_str());
+    
+    connectReg(regAddr, regPort);
+    
+    char buffer[22]; // "xxx.xxx.xxx.xxx:yyyyy\n"
+    
+    if( write(socketDescriptor, cmd, strlen(cmd)) < 0 )
+        sys_err("Error during socket operation (write)");
+    
+    if ( read(socketDescriptor, buffer, strlen(buffer)) < 0 )
+        sys_err("Error during socket operation (read)");
+
+    disconnectReg();    
+    
+    string strBuffer(buffer);
+    
+    if(strBuffer.compare("NoSrvForReq") == 0){
+        msg.clear();
+        msg.append("No service provider for '");
+        msg.append(cmd);
+        msg.append("'...");
+        usr_msg(msg.c_str());
+
+        return false;
+    }
+    
+    else{
+        int i = (int)strBuffer.find(":");
+        string srvAddr(strBuffer, 0, i);
+        
+        i++;
+        string srvPort(strBuffer, i, strBuffer.size());;
+        
+        insertSrv(srvAddr.c_str(), srvPort.c_str(), cmd);
+        
+        msg.clear();
+        msg.append("Service provider address acquired (");
+        msg.append(strBuffer);
+        msg.append(")");
+        usr_msg(msg.c_str());
+        
+        srv.addr = srvAddr;
+        srv.port = srvPort;
+        
+        return true;
+    }
+}
+
+
+bool Client::checkSrvList(const char* cmd){
+    
+    usr_msg("Checking in the service provider list...");
+    
+    if(srvList.empty()){
+        usr_msg("Server list empty");
+        return false;
+    }
+        
+    list <cmd_s>::iterator iter = find(srvList.begin(), srvList.end(), find_cmd(cmd));
+    
+    if( iter == srvList.end()){
+        string msg("The list doesn't contain any provider for '");
+        msg.append(cmd);
+        msg.append("'");
+        usr_msg(msg.c_str());
+        return false;
+    }
+    
+    string srvAddr = iter->srv.begin()->addr;
+    string srvPort = iter->srv.begin()->port;
+    
+    string msg("Service provider found ");
+    msg.append(srvAddr);
+    msg.append(":");
+    msg.append(srvPort);
+    usr_msg(msg.c_str());
+    
+    srv.addr = srvAddr;
+    srv.port = srvPort;
+    
+    return true;
+    
+}
+
+
+void Client::srvReq(const char* addr, const char* port, const char * cmd){
+    
+    connectSrv(addr, port);
+    
+    
+    
+    disconnectSrv();
+    
+}
+
+void Client::srvReq(const char* addr, const char* port, const char* cmd, const char* data){
+
+    connectSrv(addr, port);
+    
+    
+    
+    disconnectSrv();
+    
+}
+
+
+void Client::insertSrv(const char* addr, const char* port, const char* cmd){
+    
+    //inserisce il nuovo server nella lista dei comandi per i quali sono stati individuati server
+    
+    
+}
+
+
+
+
+
+//char* Client::chooseRandom(const char* ext){}
+  
+
+
+
+char* Client::getLocalFile(const char* ext){
     
     /*
-    char buffer[10];
-    GetModuleFileName( NULL, buffer, 10 );
-    string::size_type pos = string( buffer ).find_last_of( "\\/" );
-    string( buffer ).substr( 0, pos);
-    */
+     char buffer[10];
+     GetModuleFileName( NULL, buffer, 10 );
+     string::size_type pos = string( buffer ).find_last_of( "\\/" );
+     string( buffer ).substr( 0, pos);
+     */
     
     srand((unsigned)time(NULL));
     
     std::string path;
     path.append("/Users/francescoracciatti/Desktop/Client/Client/");
     path.append("img/");
-
+    
     std::string name;
     name.append(std::to_string(rand()%10));
     name.append(".");
@@ -214,9 +414,6 @@ char* Client::getRandomLocalFile(const char* ext){
     
 }
 
-
-
-
 bool Client::decisor(){
     
     srand((unsigned)time(NULL));
@@ -248,45 +445,6 @@ void Client::usr_msg(const char* msg){
     
 }
 
-
-
-
-
-
-/*
-void Client::connectProvider(const char* cmd){
-    
-    char buffer[22];    // "xxx.xxx.xxx.xxx:yyyyy\n"
-    std::string strBuffer;
-        
-    std::string msg;
-    msg.append("Searching service provider for service request '");
-    msg.append(cmd);
-
-    msg.append("'...");
-    usr_msg(msg.c_str());
-    
-    write(socketRegistry, cmd, strlen(cmd));
-    read(socketRegistry, buffer, strlen(buffer));
-    
-    strBuffer.copy(buffer,strlen(buffer),0);
-    std::size_t found = strBuffer.find(":");
-    int index = (int) found;
-    
-    std::string ipProvider;
-    ipProvider.append(strBuffer,0,index);
-    ipProvider.append("");
-
-    std::string portProvider;
-    index++;
-    portProvider.append(strBuffer, index, strBuffer.size());
-    
-    socketClientServer(ipProvider.c_str(), portProvider.c_str());
-    
-}
-
-
-*/
 
 
 

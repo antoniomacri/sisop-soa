@@ -36,56 +36,104 @@
 
 #include "ClientLib.h"
 
-void parser(const int argc, const char* argv[]){
+
+void usr_err(const char* msg){
     
-    if(argc < 2) {
-        std::cout<<"Usage: client <Service Register IP Address> <Port>"<<std::endl;
-        exit(-1);
-    }
+    std::cout<<msg<<std::endl;
+    exit(-1);
+    
+}
+
+void usr_msg(const char* msg){
+
+    std::cout<<msg<<std::endl;
+    
+}
+
+bool choose(){
+    
+    usr_msg("Continue? (y or n)");
+    string in;
+    cin>>in;
+    
+    if( in == "y")
+        return true;
+
+    return false;
     
 }
 
 
 int main(const int argc, const char* argv[])
-{
-    parser(argc, argv);
+{    
+    if(argc < 2) {
+        std::cout<<"Usage: client <Service Register IP Address> <Port>"<<std::endl;
+        exit(-1);
+    }
+    
+    std::string regAddr = argv[1];
+    std::string regPort = argv[2];
     
     Client cln;
+    
+    bool loop;
+    
+    string cmd;    
+    
+    do{
+        
+        if( cln.decisor() )
+            cln.getLocalFile("jpg");            
+        
+        else{
+            
+            if( !cln.checkSrvList("GetList"))
+                if( !cln.locateSrv(argv[1], argv[2], "GetList"))
+                    usr_err("Change service register");
+            
+            cln.srvReq(cln.srv.addr.c_str(), cln.srv.port.c_str(), "GetList");
+            cln.srvReq(cln.srv.addr.c_str(), cln.srv.port.c_str(), "GetImage", cln.data.c_str());
+            
+        }
+        
+        if( cln.decisor() ){
+            cmd.clear();
+            cmd.append("RotateImage");
+        }
 
-    if(cln.decisor()){
+        else{
+            cmd.clear();
+            cmd.append("HorizontalFlipImage");
+        }
         
-        char* buffer = cln.getRandomLocalFile("jpg");
+        if( !cln.checkSrvList(cmd.c_str()) )
+            if( !cln.locateSrv(argv[1], argv[2], cmd.c_str()) )
+                usr_err("Change service register");
         
-    }
-    else{         //get img from remote server
-        
-        //contact repository from get image
-        //close repository socket
-        //open provider repository
-        //get list
-        //random choice
-        //get img
-        //close socket
+        cln.srvReq(cln.srv.addr.c_str(), cln.srv.addr.c_str(), cmd.c_str(), cln.data.c_str());
+        //togliere assolutamente-------^----------------------------^-------------------^
 
+        cmd.clear();
+        cmd.append("StoreImage");
         
-    }
-    
-    //contact repository to find other server to modify img
-    cln.makeSocketClientRegistry(argv[1], argv[2]);
-    
-    //...
-    
-    
-    //contact repository to find server to store image
-    //close repository socket
-    //open clientServer socket
-    //store img
-   
-    
-    
-    //loop it!!!
-    
-    
+        if( !cln.checkSrvList(cmd.c_str()) )
+            if( !cln.locateSrv(argv[1], argv[2], cmd.c_str()) )
+                usr_err("Change service register");
+        
+        cln.srvReq(cln.srv.addr.c_str(), cln.srv.addr.c_str(), cmd.c_str(), cln.data.c_str(), cln.name);
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        loop = choose();
+        
+    }while(loop);
     
     return 0;
 }

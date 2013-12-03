@@ -39,14 +39,14 @@
 
 void usr_err(const char* msg){
     
-    std::cout<<msg<<std::endl;
+    cout<<msg<<std::endl;
     exit(-1);
     
 }
 
 void usr_msg(const char* msg){
 
-    std::cout<<msg<<std::endl;
+    cout<<msg<<std::endl;
     
 }
 
@@ -67,12 +67,12 @@ bool choose(){
 int main(const int argc, const char* argv[])
 {    
     if(argc < 2) {
-        std::cout<<"Usage: client <Service Register IP Address> <Port>"<<std::endl;
+        cout<<"Usage: client <Service Register IP Address> <Port>"<<endl;
         exit(-1);
     }
     
-    std::string regAddr = argv[1];
-    std::string regPort = argv[2];
+    string regAddr = argv[1];
+    string regPort = argv[2];
     
     Client cln;
     
@@ -83,7 +83,7 @@ int main(const int argc, const char* argv[])
     do{
         
         if( cln.decisor() )
-            cln.getLocalFile("jpg");            
+            cln.getLocalImg();
         
         else{
             
@@ -91,8 +91,8 @@ int main(const int argc, const char* argv[])
                 if( !cln.locateSrv(argv[1], argv[2], "GetList"))
                     usr_err("Change service register");
             
-            cln.srvReq(cln.srv.addr.c_str(), cln.srv.port.c_str(), "GetList");
-            cln.srvReq(cln.srv.addr.c_str(), cln.srv.port.c_str(), "GetImage", cln.data.c_str());
+            cln.srvReq(cln.cache.addr, cln.cache.port, "GetList");
+            cln.srvReq(cln.cache.addr, cln.cache.port, "GetImage", cln.cache.name);
             
         }
         
@@ -107,30 +107,21 @@ int main(const int argc, const char* argv[])
         }
         
         if( !cln.checkSrvList(cmd.c_str()) )
-            if( !cln.locateSrv(argv[1], argv[2], cmd.c_str()) )
+            if( !cln.locateSrv(argv[1], argv[2], cmd) )
                 usr_err("Change service register");
         
-        cln.srvReq(cln.srv.addr.c_str(), cln.srv.addr.c_str(), cmd.c_str(), cln.data.c_str());
-        //togliere assolutamente-------^----------------------------^-------------------^
+        cln.srvReq(cln.cache.addr, cln.cache.port, cmd, cln.cache.name, cln.cache.data);
 
         cmd.clear();
         cmd.append("StoreImage");
         
-        if( !cln.checkSrvList(cmd.c_str()) )
-            if( !cln.locateSrv(argv[1], argv[2], cmd.c_str()) )
+        if( !cln.checkSrvList(cmd) )
+            if( !cln.locateSrv(argv[1], argv[2], cmd) )
                 usr_err("Change service register");
         
-        cln.srvReq(cln.srv.addr.c_str(), cln.srv.addr.c_str(), cmd.c_str(), cln.data.c_str(), cln.name);
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+        cln.srvReq(cln.cache.addr, cln.cache.port, cmd, cln.cache.name, cln.cache.data);
+     
+
         loop = choose();
         
     }while(loop);

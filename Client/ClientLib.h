@@ -40,23 +40,29 @@
 
 using namespace std;
 
-struct server_s{
+typedef struct server_s{
     string addr;
     string port;
-};
+} server_t;
 
-struct cmd_s{
+typedef struct service_s{
     string cmd;
-    list <server_s> srv;
-};
+    list <server_t> srv;
+} service_t;
 
-struct find_cmd : unary_function <cmd_s, bool>{
+
+/*
+//unary_function deprecated in c++11
+ 
+struct find_cmd : unary_function <service_t, bool>{
     string cmd;
     find_cmd(string cmd):cmd(cmd){}
-    bool operator() (cmd_s const& c) const{
-        return c.cmd == cmd;
+    bool operator() (service_t const& s) const{
+        return s.cmd == cmd;
     }    
 };
+*/
+
 
 class Client {
     
@@ -66,103 +72,58 @@ private:
     struct hostent *server;
     int socketDescriptor;
     
-    list <cmd_s> srvList;
+    list <service_t> srvList;
     
 public:
     
-    string name;
-    string data;
-    server_s srv;
-       
+    struct cache_s{
+        string name;
+        string data;
+        string addr;
+        string port;
+    } cache;
+    
 private:
     
-    void openConnection(const char*, const char*);
+    void openConnection(const string, const string);
     void closeConnection();
     
-    void insertSrv(const char*, const char*, const char*);
-    
-    void connectReg(const char*, const char*);
+    void connectReg(const string, const string);
     void disconnectReg();
     
-    void connectSrv(const char*, const char*);
+    void connectSrv(const string, const string);
     void disconnectSrv();
 
+    void insertSrv(const string, const string, const string);
     
 public:
+    
     Client();
     ~Client();
 
-    bool locateSrv(const char*, const char*, const char*);
-    bool checkSrvList(const char*);
+    bool locateSrv(const string, const string, const string);
+    bool checkSrvList(const string);
     
-    void srvReq(const char*, const char*, const char*);
-    void srvReq(const char*, const char*, const char*, const char*);
+    void srvReq(const string, const string, const string);
+    void srvReq(const string, const string, const string, const string);
+    void srvReq(const string, const string, const string, const string, const string);
     
+    string getLocalImg();
     
-    char* getLocalFile(const char*);    
     bool decisor();
-    void sys_err(const char*);
-    void usr_err(const char*);
-    void usr_msg(const char*);
-    
-    
-    
-    //---
-    void connectProvider(const char*);
-    void requestService(const char* );
-    
-    //void getListOfServices();
-    //char* getLocalFile(const char*, const char*);
-    //char* getRemoteFile(const char*);
-    
-    
-    void closeClient();
+    void sys_err(const string);
+    void usr_err(const string);
+    void usr_msg(const string);
 
 };
 
 
-
-
-
-
-
-
-
-
-// ---
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Client::Client(){
+void Client::openConnection(const string addr, const string port){
     
-    usr_msg("Client is running...");
-    socketDescriptor = socket(AF_INET, SOCK_STREAM, 0);
-    serverAddress.sin_family = AF_INET;
-        
-}
-
-Client::~Client(){
-    
-}
-
-void Client::openConnection(const char* ipAddress, const char* port){
-        
     bzero(&serverAddress, sizeof(struct sockaddr_in));
-    serverAddress.sin_port = htons( atoi(port) );
+    serverAddress.sin_port = htons( atoi(port.c_str()) );
     
-    server = gethostbyname(ipAddress);
+    server = gethostbyname(addr.c_str());
     if(server == 0)
         sys_err("Server not reachable");
     
@@ -173,11 +134,29 @@ void Client::openConnection(const char* ipAddress, const char* port){
     
 }
 
-void Client::closeConnection(){
 
+void Client::closeConnection(){
+    
     close(socketDescriptor);
     
 }
+
+
+void Client::connectReg(const string regAddr, const string regPort){
+    
+    string str("Searching service repository at ");
+    str.append(regAddr);
+    str.append(":");
+    str.append(regPort);
+    str.append("...");
+    usr_msg(str);
+    
+    openConnection(regAddr, regPort);
+    
+    usr_msg("Service repository found");
+    
+}
+
 
 void Client::disconnectReg(){
     
@@ -186,6 +165,23 @@ void Client::disconnectReg(){
     usr_msg("Connection with service register is terminated");
     
 }
+
+
+void Client::connectSrv(const string srvAddr, const string srvPort){
+    
+    string str("Searching service provider at ");
+    str.append(srvAddr);
+    str.append(":");
+    str.append(srvPort);
+    str.append("...");
+    usr_msg(str);
+    
+    openConnection(srvAddr, srvPort);
+    
+    usr_msg("Service provider found");
+    
+}
+
 
 void Client::disconnectSrv(){
     
@@ -196,58 +192,43 @@ void Client::disconnectSrv(){
 }
 
 
-void Client::connectReg(const char* ipAddress, const char* port){
-    
-    std::string str;
-    str.append("Searching service repository at ");
-    str.append(ipAddress);
-    str.append(":");
-    str.append(port);
-    str.append("...");
-    usr_msg(str.c_str());
-    
-    openConnection(ipAddress, port);
-    
-    usr_msg("Service repository found");
-
-}
-
-void Client::connectSrv(const char* ipAddress, const char* port){
-    
-    std::string str;
-    str.append("Searching service provider at ");
-    str.append(ipAddress);
-    str.append(":");
-    str.append(port);
-    str.append("...");
-    usr_msg(str.c_str());
-    
-    openConnection(ipAddress, port);
-    
-    usr_msg("Service provider found");
+void Client::insertSrv(const string srvAddr, const string srvPort, const string cmd){
     
 }
 
 
+Client::Client(){
+    
+    usr_msg("Client is running...");
+    socketDescriptor = socket(AF_INET, SOCK_STREAM, 0);
+    serverAddress.sin_family = AF_INET;
+    
+}
 
-bool Client::locateSrv(const char* regAddr, const char* regPort, const char* cmd){
+
+Client::~Client(){
+    
+}
+
+
+bool Client::locateSrv(const string regAddr, const string regPort, const string cmd){
     
     string msg("Searching service provider for '");
     msg.append(cmd);
     msg.append("'...");
-    usr_msg(msg.c_str());
+    usr_msg(msg);
     
     connectReg(regAddr, regPort);
     
     char buffer[22]; // "xxx.xxx.xxx.xxx:yyyyy\n"
     
-    if( write(socketDescriptor, cmd, strlen(cmd)) < 0 )
+    if( write(socketDescriptor, cmd.c_str(), (int)cmd.size()) < 0 )
         sys_err("Error during socket operation (write)");
     
     if ( read(socketDescriptor, buffer, strlen(buffer)) < 0 )
         sys_err("Error during socket operation (read)");
-
-    disconnectReg();    
+    
+    disconnectReg();
     
     string strBuffer(buffer);
     
@@ -256,108 +237,118 @@ bool Client::locateSrv(const char* regAddr, const char* regPort, const char* cmd
         msg.append("No service provider for '");
         msg.append(cmd);
         msg.append("'...");
-        usr_msg(msg.c_str());
-
+        usr_msg(msg);
+        
         return false;
     }
     
     else{
         int i = (int)strBuffer.find(":");
         string srvAddr(strBuffer, 0, i);
-        
+
         i++;
         string srvPort(strBuffer, i, strBuffer.size());;
         
-        insertSrv(srvAddr.c_str(), srvPort.c_str(), cmd);
+        insertSrv(srvAddr, srvPort, cmd);
         
         msg.clear();
         msg.append("Service provider address acquired (");
         msg.append(strBuffer);
         msg.append(")");
-        usr_msg(msg.c_str());
+        usr_msg(msg);
         
-        srv.addr = srvAddr;
-        srv.port = srvPort;
+        cache.addr = srvAddr;
+        cache.port = srvPort;
         
         return true;
     }
+    
 }
 
 
-bool Client::checkSrvList(const char* cmd){
+bool Client::checkSrvList(const string cmd){
     
-    usr_msg("Checking in the service provider list...");
+    usr_msg("Checking local service provider list...");
     
     if(srvList.empty()){
-        usr_msg("Server list empty");
+        usr_msg("Local service provider list empty");
+        
         return false;
     }
+    
+    //list <service_t>::iterator iter = find(srvList.begin(), srvList.end(), find_cmd(cmd));
+    
+    list <service_t>::iterator iter = srvList.begin();
+    
+    do{
         
-    list <cmd_s>::iterator iter = find(srvList.begin(), srvList.end(), find_cmd(cmd));
+        if(iter->cmd == cmd)
+            break;
+        else
+            advance(iter,1);
+        
+    }while(iter!=srvList.end());
+    
     
     if( iter == srvList.end()){
         string msg("The list doesn't contain any provider for '");
         msg.append(cmd);
         msg.append("'");
-        usr_msg(msg.c_str());
+        usr_msg(msg);
         return false;
     }
     
-    string srvAddr = iter->srv.begin()->addr;
-    string srvPort = iter->srv.begin()->port;
+    else{
+        
+        string srvAddr = iter->srv.begin()->addr;
+        string srvPort = iter->srv.begin()->port;
     
-    string msg("Service provider found ");
-    msg.append(srvAddr);
-    msg.append(":");
-    msg.append(srvPort);
-    usr_msg(msg.c_str());
+        string msg("Service provider found ");
+        msg.append(srvAddr);
+        msg.append(":");
+        msg.append(srvPort);
+        usr_msg(msg);
     
-    srv.addr = srvAddr;
-    srv.port = srvPort;
+        cache.addr = srvAddr;
+        cache.port = srvPort;
     
-    return true;
-    
-}
-
-
-void Client::srvReq(const char* addr, const char* port, const char * cmd){
-    
-    connectSrv(addr, port);
-    
-    
-    
-    disconnectSrv();
+        return true;
+    }
     
 }
 
-void Client::srvReq(const char* addr, const char* port, const char* cmd, const char* data){
 
-    connectSrv(addr, port);
+
+
+
+void Client::srvReq(const string srvAddr, const string srvPort, const string cmd){
     
-    
+    connectSrv(srvAddr, srvPort);
     
     disconnectSrv();
     
 }
 
 
-void Client::insertSrv(const char* addr, const char* port, const char* cmd){
+void Client::srvReq(const string srvAddr, const string srvPort, const string cmd, const string name){
     
-    //inserisce il nuovo server nella lista dei comandi per i quali sono stati individuati server
+    connectSrv(srvAddr, srvPort);
     
+    disconnectSrv();
     
 }
 
 
+void Client::srvReq(const string srvAddr, const string srvPort, const string cmd, const string data, const string name){
+    
+    connectSrv(srvAddr, srvPort);
+    
+    disconnectSrv();
+    
+}
 
 
-
-//char* Client::chooseRandom(const char* ext){}
-  
-
-
-
-char* Client::getLocalFile(const char* ext){
+string Client::getLocalImg(){
     
     /*
      char buffer[10];
@@ -368,51 +359,44 @@ char* Client::getLocalFile(const char* ext){
     
     srand((unsigned)time(NULL));
     
-    std::string path;
-    path.append("/Users/francescoracciatti/Desktop/Client/Client/");
-    path.append("img/");
+    string path("/Users/francescoracciatti/Desktop/Client/Client/img/");
     
-    std::string name;
-    name.append(std::to_string(rand()%10));
-    name.append(".");
-    name.append(ext);
+    string name(to_string(rand()%10));
+    name.append(".jpg");
     
-    std::string complete;
-    complete.append(path);
+    string complete(path);
     complete.append(name);
     
-    std::ifstream file(complete, std::ios::binary);
+    ifstream file(complete, ios::binary);
     
     if(file.is_open()){
-        std::string msg;
-        msg.append("File ");
+        string msg("File ");
         msg.append(name);
         msg.append(" found in ");
         msg.append(path);
         msg.append("");
-        usr_msg(msg.c_str());
+        usr_msg(msg);
     }
     else{
-        std::string msg;
-        msg.append("File ");
+        string msg("File ");
         msg.append(name);
         msg.append(" not found");
-        usr_err(msg.c_str());
+        usr_err(msg);
     }
     
-    file.seekg(0,std::ios::end);
-    std::ifstream::pos_type size = file.tellg();
+    file.seekg(0,ios::end);
+    ifstream::pos_type size = file.tellg();
     file.seekg(0);
-    
+        
     char* buffer = new char[size];
-    
     file.read(buffer, size);
-    
     file.close();
     
-    return buffer;
+    string strBuffer(buffer);
+    return strBuffer;
     
 }
+
 
 bool Client::decisor(){
     
@@ -424,24 +408,24 @@ bool Client::decisor(){
     return false;
 }
 
-void Client::sys_err(const char* msg){
+void Client::sys_err(const string msg){
     
-    std::cout<<msg<<std::endl;
-    std::cerr<<strerror(errno)<<std::endl;
+    cout<<msg<<endl;
+    cerr<<strerror(errno)<<endl;
     exit(-1);
     
 }
 
-void Client::usr_err(const char* msg){
+void Client::usr_err(const string msg){
     
-    std::cout<<msg<<std::endl;
+    cout<<msg<<endl;
     exit(-1);
     
 }
 
-void Client::usr_msg(const char* msg){
+void Client::usr_msg(const string msg){
     
-    std::cout<<msg<<std::endl;
+    cout<<msg<<endl;
     
 }
 

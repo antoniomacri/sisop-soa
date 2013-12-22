@@ -73,6 +73,31 @@ DISTCLEAN += $(LIBSSOA) $(LIB)
 
 
 ###
+### libssoa-test
+###
+LIBSSOATEST := $(BIN)/libssoa-test
+.PHONY: test-library
+test-library: $(LIBSSOATEST)
+
+LIBSSOATEST_INCLUDES := libssoa-test/src libssoa/api
+LIBSSOATEST_SOURCES := $(wildcard libssoa-test/src/*.cpp)
+LIBSSOATEST_OBJECTS := $(patsubst libssoa-test/src/%,libssoa-test/obj/%, $(LIBSSOATEST_SOURCES:.cpp=.o))
+LIBSSOATEST_DEPS := $(LIBSSOATEST_OBJECTS:.o=.d)
+LIBSSOATEST_LIBS := ssoa boost_regex boost_unit_test_framework
+
+$(LIBSSOATEST): $(LIBSSOA) $(LIBSSOATEST_OBJECTS)
+	$(call LINK,$(LIBSSOATEST_OBJECTS),$(LIBSSOATEST_LIBS))
+
+libssoa-test/obj/%.o: libssoa-test/src/%.cpp
+	$(call COMPILE,$(LIBSSOATEST_INCLUDES))
+
+-include $(LIBSSOATEST_DEPS)
+
+CLEAN += $(LIBSSOATEST_OBJECTS) $(LIBSSOATEST_DEPS) libssoa-test/obj
+DISTCLEAN += $(LIBSSOATEST) $(BIN)
+
+
+###
 ### ssoa-registry
 ###
 REGISTRY := $(BIN)/ssoa-registry

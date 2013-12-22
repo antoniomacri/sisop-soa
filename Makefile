@@ -40,6 +40,11 @@ define LINK
 	$(CXX) $(LDFLAGS) -o $@ $1 $(addprefix -l,$2)
 endef
 
+# Takes an argument containing the folder name of the module.
+define GETOBJECTS
+	$(eval SRCS:=$(wildcard $1/src/*.cpp))$(patsubst $1/src/%,$1/obj/%, $(SRCS:.cpp=.o))
+endef
+
 
 ###
 ### Main target
@@ -56,8 +61,7 @@ LIBSSOA := $(LIB)/libssoa.a
 library: $(LIBSSOA)
 
 LIBSSOA_INCLUDES := libssoa/api libssoa/src
-LIBSSOA_SOURCES := $(wildcard libssoa/src/*.cpp)
-LIBSSOA_OBJECTS := $(patsubst libssoa/src/%,libssoa/obj/%, $(LIBSSOA_SOURCES:.cpp=.o))
+LIBSSOA_OBJECTS := $(call GETOBJECTS,libssoa)
 LIBSSOA_DEPS := $(LIBSSOA_OBJECTS:.o=.d)
 
 $(LIBSSOA): $(LIBSSOA_OBJECTS)
@@ -80,8 +84,7 @@ LIBSSOATEST := $(BIN)/libssoa-test
 test-library: $(LIBSSOATEST)
 
 LIBSSOATEST_INCLUDES := libssoa-test/src libssoa/api
-LIBSSOATEST_SOURCES := $(wildcard libssoa-test/src/*.cpp)
-LIBSSOATEST_OBJECTS := $(patsubst libssoa-test/src/%,libssoa-test/obj/%, $(LIBSSOATEST_SOURCES:.cpp=.o))
+LIBSSOATEST_OBJECTS := $(call GETOBJECTS,libssoa-test)
 LIBSSOATEST_DEPS := $(LIBSSOATEST_OBJECTS:.o=.d)
 LIBSSOATEST_LIBS := ssoa boost_regex boost_unit_test_framework
 
@@ -105,8 +108,7 @@ REGISTRY := $(BIN)/ssoa-registry
 registry: $(REGISTRY)
 
 REGISTRY_INCLUDES := ssoa-registry/include ssoa-registry/src libssoa/api
-REGISTRY_SOURCES := $(wildcard ssoa-registry/src/*.cpp)
-REGISTRY_OBJECTS := $(patsubst ssoa-registry/src/%,ssoa-registry/obj/%, $(REGISTRY_SOURCES:.cpp=.o))
+REGISTRY_OBJECTS := $(call GETOBJECTS,ssoa-registry)
 REGISTRY_DEPS := $(REGISTRY_OBJECTS:.o=.d)
 REGISTRY_LIBS := ssoa boost_thread pthread boost_regex boost_system yaml-cpp
 

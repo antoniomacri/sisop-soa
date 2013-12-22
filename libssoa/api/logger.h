@@ -9,6 +9,10 @@
 #ifndef _LOGGER_H_
 #define _LOGGER_H_
 
+#ifndef LOG_LEVEL
+#define LOG_LEVEL LOG_DEBUG
+#endif
+
 #include <iostream>
 
 namespace ssoa
@@ -40,8 +44,6 @@ namespace ssoa
     class Logger
     {
     public:
-        static const int LOG_LEVEL = LOG_DEBUG;
-
         /** Writes with debug priority */
         static std::ostream& debug();
         /** Writes with info priority */

@@ -125,6 +125,16 @@ DISTCLEAN += $(REGISTRY) $(BIN)
 
 
 ###
+### documentation
+###
+.PHONY: documentation
+documentation:
+	doxygen
+
+DISTCLEAN += $(wildcard doc/html/search/*) $(wildcard doc/html/*) doc/html
+
+
+###
 ### Clean
 ###
 .PHONY: clean distclean

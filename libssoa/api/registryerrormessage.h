@@ -12,8 +12,8 @@ namespace ssoa
     class RegistryErrorMessage: public RegistryMessage
     {
     public:
-        RegistryErrorMessage(const std::string & status) :
-            RegistryMessage(TYPE_ERROR), status(status)
+        RegistryErrorMessage(std::string status) :
+            RegistryMessage(TYPE_ERROR), status(std::move(status))
         {
         }
 

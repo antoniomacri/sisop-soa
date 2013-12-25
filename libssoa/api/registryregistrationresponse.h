@@ -14,9 +14,9 @@ namespace ssoa
     {
     public:
         RegistryRegistrationResponse(
-            const RegistryRegistrationRequest * request, bool successful = true, const std::string & status = "") :
+            const RegistryRegistrationRequest * request, bool successful = true, std::string status = "") :
             RegistryMessage(TYPE_REGISTRATION_RESPONSE),
-                request(request), successful(successful), status(status)
+                request(request), successful(successful), status(std::move(status))
         {
         }
 

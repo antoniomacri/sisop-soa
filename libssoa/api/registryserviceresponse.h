@@ -19,9 +19,9 @@ namespace ssoa
         {
         }
 
-        RegistryServiceResponse(const RegistryServiceRequest * request, const std::string & status) :
+        RegistryServiceResponse(const RegistryServiceRequest * request, std::string status) :
             RegistryMessage(TYPE_SERVICE_RESPONSE),
-                request(request), host(""), port(""), successful(false), status(status)
+                request(request), host(""), port(""), successful(false), status(std::move(status))
         {
         }
 

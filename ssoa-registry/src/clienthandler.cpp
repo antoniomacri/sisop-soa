@@ -130,7 +130,7 @@ namespace ssoa
                 result = registry.unregisterService(ServiceSignature(service), host, port);
             else
                 result = registry.registerService(ServiceSignature(service), host, port);
-            return RegistryRegistrationResponse(request, result).toYaml();
+            return RegistryRegistrationResponse(result).toYaml();
         }
         catch (std::exception& e) {
             return RegistryErrorMessage(e.what()).toYaml();
@@ -148,11 +148,11 @@ namespace ssoa
                 std::cout << "Found!" << std::endl;
                 std::cout << "  host: " << host << std::endl;
                 std::cout << "  port: " << port << std::endl;
-                return RegistryServiceResponse(request, host, port).toYaml();
+                return RegistryServiceResponse(host, port).toYaml();
             }
             else {
                 std::cout << "Not found!" << std::endl;
-                return RegistryServiceResponse(request, "No provider available for the requested service.").toYaml();
+                return RegistryServiceResponse("No provider available for the requested service.").toYaml();
             }
         }
         catch (std::exception& e) {

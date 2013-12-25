@@ -23,11 +23,11 @@ namespace ssoa
         if (!successful || successful->to<bool>()) {
             string host = node["host"].to<string>();
             string port = node["port"].to<string>();
-            return new RegistryServiceResponse(NULL, host, port);
+            return new RegistryServiceResponse(host, port);
         }
         auto pstatus = node.FindValue("status");
         string status = pstatus ? pstatus->to<string>() : "";
-        return new RegistryServiceResponse(NULL, status);
+        return new RegistryServiceResponse(status);
     }
 
     string RegistryServiceResponse::toYaml() const

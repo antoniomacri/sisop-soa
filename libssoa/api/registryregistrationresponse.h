@@ -6,23 +6,15 @@
 #define _REGISTRYREGISTRATIONRESPONSE_H_
 
 #include <registrymessage.h>
-#include <registryregistrationrequest.h>
 
 namespace ssoa
 {
     class RegistryRegistrationResponse: public RegistryMessage
     {
     public:
-        RegistryRegistrationResponse(
-            const RegistryRegistrationRequest * request, bool successful = true, std::string status = "") :
-            RegistryMessage(TYPE_REGISTRATION_RESPONSE),
-                request(request), successful(successful), status(std::move(status))
+        RegistryRegistrationResponse(bool successful = true, std::string status = "") :
+            RegistryMessage(TYPE_REGISTRATION_RESPONSE), successful(successful), status(std::move(status))
         {
-        }
-
-        const RegistryRegistrationRequest * getRequest() const {
-            // TODO: it is really useful?
-            return request;
         }
 
         bool isSuccessful() const {
@@ -37,7 +29,6 @@ namespace ssoa
         virtual std::string toYaml() const;
 
     private:
-        const RegistryRegistrationRequest * request;
         const bool successful;
         const std::string status;
     };

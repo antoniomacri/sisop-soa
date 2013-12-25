@@ -6,28 +6,20 @@
 #define _REGISTRYSERVICERESPONSE_H_
 
 #include <registrymessage.h>
-#include "registryservicerequest.h"
 
 namespace ssoa
 {
     class RegistryServiceResponse: public RegistryMessage
     {
     public:
-        RegistryServiceResponse(const RegistryServiceRequest * request, std::string host, std::string port) :
-            RegistryMessage(TYPE_SERVICE_RESPONSE),
-                request(request), host(std::move(host)), port(std::move(port)), successful(true)
+        RegistryServiceResponse(std::string host, std::string port) :
+            RegistryMessage(TYPE_SERVICE_RESPONSE), host(std::move(host)), port(std::move(port)), successful(true)
         {
         }
 
-        RegistryServiceResponse(const RegistryServiceRequest * request, std::string status) :
-            RegistryMessage(TYPE_SERVICE_RESPONSE),
-                request(request), host(""), port(""), successful(false), status(std::move(status))
+        RegistryServiceResponse(std::string status) :
+            RegistryMessage(TYPE_SERVICE_RESPONSE), host(""), port(""), successful(false), status(std::move(status))
         {
-        }
-
-        // TODO: it is really useful?
-        const RegistryServiceRequest * getRequest() const {
-            return request;
         }
 
         const std::string & getHost() const {
@@ -50,7 +42,6 @@ namespace ssoa
         virtual std::string toYaml() const;
 
     private:
-        const RegistryServiceRequest * request;
         const std::string host;
         const std::string port;
         const bool successful;

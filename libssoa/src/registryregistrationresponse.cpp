@@ -21,7 +21,7 @@ namespace ssoa
 
         bool successful = node["successful"].to<bool>();
         string status = node["status"].to<string>();
-        return new RegistryRegistrationResponse(NULL, successful, status);
+        return new RegistryRegistrationResponse(successful, status);
     }
 
     string RegistryRegistrationResponse::toYaml() const
@@ -30,7 +30,6 @@ namespace ssoa
         e << YAML::BeginMap;
         e << YAML::Key << "type" << YAML::Value << EnumHelper::toString(TYPE_REGISTRATION_RESPONSE);
         e << YAML::Key << "successful" << YAML::Value << successful;
-        // TODO: print request?
         if (!status.empty()) {
             e << YAML::Key << "status" << YAML::Value << status;
         }

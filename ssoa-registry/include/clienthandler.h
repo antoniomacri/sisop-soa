@@ -6,7 +6,8 @@
 #define _CLIENTHANDLER_H_
 
 #include <registryimpl.h>
-#include <registrymessage.h>
+#include <registryregistrationrequest.h>
+#include <registryservicerequest.h>
 
 #include <string>
 

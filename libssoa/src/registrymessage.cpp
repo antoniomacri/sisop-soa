@@ -10,6 +10,7 @@
 
 #include <yaml-cpp/yaml.h>
 
+using std::string;
 using std::istringstream;
 
 namespace ssoa

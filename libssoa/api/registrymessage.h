@@ -11,8 +11,6 @@
 
 #include <boost/algorithm/string/replace.hpp>
 
-using std::string;
-
 // Forward-declare YAML::Node
 namespace YAML
 {
@@ -47,9 +45,9 @@ namespace ssoa
         /// @return Never returns NULL (in case of error an exception is thrown).
         ///
         /// @throws YAML::Exception if @c yaml contains invalid YAML code.
-        static RegistryMessage * fromYaml(const string & yaml);
+        static RegistryMessage * fromYaml(const std::string & yaml);
 
-        virtual string toYaml() const = 0;
+        virtual std::string toYaml() const = 0;
 
         virtual ~RegistryMessage()
         {
@@ -62,12 +60,12 @@ namespace ssoa
         }
 
         // TODO: improve escape/unescape
-        static string escapeYaml(string text) {
-            if (text.find_first_of(":'\"{}[]") == string::npos)
+        static std::string escapeYaml(std::string text) {
+            if (text.find_first_of(":'\"{}[]") == std::string::npos)
                 return text;
             return "'" + boost::algorithm::replace_all_copy(text, "'", "\\'") + "'";
         }
-        static string unescapeYaml(string text) {
+        static std::string unescapeYaml(std::string text) {
             if (text.size() > 0 && text[0] == '\'' && text[text.size() - 1] == '\'')
                 return boost::algorithm::replace_all_copy(text.substr(0, text.size() - 2), "\\'", "'");
             return text;
@@ -81,26 +79,27 @@ namespace ssoa
     {
     public:
         /// @param status It will be escaped
-        RegistryErrorMessage(const string & status) :
+        RegistryErrorMessage(const std::string & status) :
             RegistryMessage(TYPE_ERROR), status(escapeYaml(status))
         {
         }
 
-        const string & getStatus() const {
+        const std::string & getStatus() const {
             return status;
         }
 
         static RegistryErrorMessage * fromYaml(const YAML::Node& node);
-        virtual string toYaml() const;
+        virtual std::string toYaml() const;
 
     private:
-        string status;
+        std::string status;
     };
 
     class RegistryRegistrationRequest: public RegistryMessage
     {
     public:
-        RegistryRegistrationRequest(const ServiceSignature & service, string host, string port, bool unregister = false) :
+        RegistryRegistrationRequest(const ServiceSignature & service, std::string host, std::string port,
+            bool unregister = false) :
             RegistryMessage(TYPE_REGISTRATION_REQUEST),
                 service(service), host(std::move(host)), port(std::move(port)), unregister(unregister)
         {
@@ -110,11 +109,11 @@ namespace ssoa
             return service;
         }
 
-        const string & getHost() const {
+        const std::string & getHost() const {
             return host;
         }
 
-        const string & getPort() const {
+        const std::string & getPort() const {
             return port;
         }
 
@@ -123,12 +122,12 @@ namespace ssoa
         }
 
         static RegistryRegistrationRequest * fromYaml(const YAML::Node& node);
-        virtual string toYaml() const;
+        virtual std::string toYaml() const;
 
     private:
         ServiceSignature service;
-        string host;
-        string port;
+        std::string host;
+        std::string port;
         bool unregister;
     };
 
@@ -137,7 +136,7 @@ namespace ssoa
     public:
         /// @param status It will be escaped
         RegistryRegistrationResponse(
-            const RegistryRegistrationRequest * request, bool successful = true, const string & status = "") :
+            const RegistryRegistrationRequest * request, bool successful = true, const std::string & status = "") :
             RegistryMessage(TYPE_REGISTRATION_RESPONSE),
                 request(request), successful(successful), status(escapeYaml(status))
         {
@@ -152,17 +151,17 @@ namespace ssoa
             return successful;
         }
 
-        const string & getStatus() const {
+        const std::string & getStatus() const {
             return status;
         }
 
         static RegistryRegistrationResponse * fromYaml(const YAML::Node& node);
-        virtual string toYaml() const;
+        virtual std::string toYaml() const;
 
     private:
         const RegistryRegistrationRequest * request;
         const bool successful;
-        const string status;
+        const std::string status;
     };
 
     class RegistryServiceRequest: public RegistryMessage
@@ -178,7 +177,7 @@ namespace ssoa
         }
 
         static RegistryServiceRequest * fromYaml(const YAML::Node& node);
-        virtual string toYaml() const;
+        virtual std::string toYaml() const;
 
     private:
         const ServiceSignature service;
@@ -188,14 +187,14 @@ namespace ssoa
     {
     public:
         /// @param status It will be escaped
-        RegistryServiceResponse(const RegistryServiceRequest * request, string host, string port) :
+        RegistryServiceResponse(const RegistryServiceRequest * request, std::string host, std::string port) :
             RegistryMessage(TYPE_SERVICE_RESPONSE),
                 request(request), host(std::move(host)), port(std::move(port)), successful(true)
         {
         }
 
         /// @param status It will be escaped
-        RegistryServiceResponse(const RegistryServiceRequest * request, const string & status) :
+        RegistryServiceResponse(const RegistryServiceRequest * request, const std::string & status) :
             RegistryMessage(TYPE_SERVICE_RESPONSE),
                 request(request), host(""), port(""), successful(false), status(escapeYaml(status))
         {
@@ -206,11 +205,11 @@ namespace ssoa
             return request;
         }
 
-        const string & getHost() const {
+        const std::string & getHost() const {
             return host;
         }
 
-        const string & getPort() const {
+        const std::string & getPort() const {
             return port;
         }
 
@@ -218,19 +217,19 @@ namespace ssoa
             return successful;
         }
 
-        const string & getStatus() const {
+        const std::string & getStatus() const {
             return status;
         }
 
         static RegistryServiceResponse * fromYaml(const YAML::Node& node);
-        virtual string toYaml() const;
+        virtual std::string toYaml() const;
 
     private:
         const RegistryServiceRequest * request;
-        const string host;
-        const string port;
+        const std::string host;
+        const std::string port;
         const bool successful;
-        const string status;
+        const std::string status;
     };
 }
 

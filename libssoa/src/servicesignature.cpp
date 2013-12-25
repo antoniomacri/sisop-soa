@@ -7,6 +7,8 @@
 
 #include <boost/regex.hpp>
 
+using std::string;
+
 namespace ssoa
 {
     ServiceSignature ServiceSignature::any;

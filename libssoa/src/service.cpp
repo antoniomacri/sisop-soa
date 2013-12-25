@@ -10,6 +10,7 @@
 
 using std::istringstream;
 using std::ostringstream;
+using std::string;
 using std::vector;
 
 namespace ssoa

@@ -17,6 +17,7 @@
 #include <boost/lexical_cast.hpp>
 #include <yaml-cpp/yaml.h>
 
+using std::string;
 using namespace boost::asio;
 using namespace boost::asio::ip;
 

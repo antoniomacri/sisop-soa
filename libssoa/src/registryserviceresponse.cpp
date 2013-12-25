@@ -26,7 +26,7 @@ namespace ssoa
             return new RegistryServiceResponse(NULL, host, port);
         }
         auto pstatus = node.FindValue("status");
-        string status = pstatus ? escapeYaml(pstatus->to<string>()) : "";
+        string status = pstatus ? pstatus->to<string>() : "";
         return new RegistryServiceResponse(NULL, status);
     }
 
@@ -41,7 +41,7 @@ namespace ssoa
             e << YAML::Key << "port" << YAML::Value << port;
         }
         if (!status.empty()) {
-            e << YAML::Key << "status" << YAML::Value << escapeYaml(status);
+            e << YAML::Key << "status" << YAML::Value << status;
         }
         e << YAML::EndMap;
         return e.c_str();

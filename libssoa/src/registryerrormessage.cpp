@@ -19,7 +19,7 @@ namespace ssoa
         if (t != TYPE_ERROR)
             throw std::logic_error("Message type mismatch");
 
-        string status = unescapeYaml(node["status"].to<string>());
+        string status = node["status"].to<string>();
         return new RegistryErrorMessage(status);
     }
 
@@ -28,7 +28,7 @@ namespace ssoa
         YAML::Emitter e;
         e << YAML::BeginMap;
         e << YAML::Key << "type" << YAML::Value << EnumHelper::toString(TYPE_ERROR);
-        e << YAML::Key << "status" << YAML::Value << escapeYaml(status);
+        e << YAML::Key << "status" << YAML::Value << status;
         e << YAML::EndMap;
         return e.c_str();
     }

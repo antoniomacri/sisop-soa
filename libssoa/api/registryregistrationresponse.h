@@ -13,11 +13,10 @@ namespace ssoa
     class RegistryRegistrationResponse: public RegistryMessage
     {
     public:
-        /// @param status It will be escaped
         RegistryRegistrationResponse(
             const RegistryRegistrationRequest * request, bool successful = true, const std::string & status = "") :
             RegistryMessage(TYPE_REGISTRATION_RESPONSE),
-                request(request), successful(successful), status(escapeYaml(status))
+                request(request), successful(successful), status(status)
         {
         }
 

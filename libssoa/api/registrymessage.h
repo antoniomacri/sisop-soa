@@ -7,8 +7,6 @@
 
 #include <string>
 
-#include <boost/algorithm/string/replace.hpp>
-
 // Forward-declare YAML::Node
 namespace YAML
 {
@@ -55,18 +53,6 @@ namespace ssoa
         RegistryMessage(Type type) :
             type(type)
         {
-        }
-
-        // TODO: improve escape/unescape
-        static std::string escapeYaml(std::string text) {
-            if (text.find_first_of(":'\"{}[]") == std::string::npos)
-                return text;
-            return "'" + boost::algorithm::replace_all_copy(text, "'", "\\'") + "'";
-        }
-        static std::string unescapeYaml(std::string text) {
-            if (text.size() > 0 && text[0] == '\'' && text[text.size() - 1] == '\'')
-                return boost::algorithm::replace_all_copy(text.substr(0, text.size() - 2), "\\'", "'");
-            return text;
         }
 
     private:

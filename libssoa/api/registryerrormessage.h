@@ -12,9 +12,8 @@ namespace ssoa
     class RegistryErrorMessage: public RegistryMessage
     {
     public:
-        /// @param status It will be escaped
         RegistryErrorMessage(const std::string & status) :
-            RegistryMessage(TYPE_ERROR), status(escapeYaml(status))
+            RegistryMessage(TYPE_ERROR), status(status)
         {
         }
 

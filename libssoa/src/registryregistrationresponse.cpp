@@ -20,7 +20,7 @@ namespace ssoa
             throw std::logic_error("Message type mismatch");
 
         bool successful = node["successful"].to<bool>();
-        string status = unescapeYaml(node["status"].to<string>());
+        string status = node["status"].to<string>();
         return new RegistryRegistrationResponse(NULL, successful, status);
     }
 
@@ -32,7 +32,7 @@ namespace ssoa
         e << YAML::Key << "successful" << YAML::Value << successful;
         // TODO: print request?
         if (!status.empty()) {
-            e << YAML::Key << "status" << YAML::Value << escapeYaml(status);
+            e << YAML::Key << "status" << YAML::Value << status;
         }
         e << YAML::EndMap;
         return e.c_str();

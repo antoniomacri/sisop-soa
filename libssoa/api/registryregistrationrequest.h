@@ -15,8 +15,7 @@ namespace ssoa
     public:
         RegistryRegistrationRequest(const ServiceSignature & service, std::string host, std::string port,
             bool unregister = false) :
-            RegistryMessage(TYPE_REGISTRATION_REQUEST),
-                service(service), host(std::move(host)), port(std::move(port)), unregister(unregister)
+            service(service), host(std::move(host)), port(std::move(port)), unregister(unregister)
         {
         }
 
@@ -36,7 +35,11 @@ namespace ssoa
             return unregister;
         }
 
-        static RegistryRegistrationRequest * fromYaml(const YAML::Node& node);
+        static const char * type() {
+            return "registration-request";
+        }
+
+        static RegistryMessage * fromYaml(const YAML::Node& node);
         virtual std::string toYaml() const;
 
     private:

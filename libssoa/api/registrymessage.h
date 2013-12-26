@@ -5,6 +5,7 @@
 #ifndef _REGISTRYMESSAGE_H_
 #define _REGISTRYMESSAGE_H_
 
+#include <map>
 #include <string>
 
 // Forward-declare YAML::Node
@@ -17,22 +18,9 @@ namespace ssoa
 {
     class RegistryMessage
     {
+        typedef RegistryMessage * (*Factory)(const YAML::Node&);
+
     public:
-        enum Type
-        {
-            TYPE_INVALID = 0,
-            TYPE_SERVICE_REQUEST,
-            TYPE_SERVICE_RESPONSE,
-            TYPE_REGISTRATION_REQUEST,
-            TYPE_REGISTRATION_RESPONSE,
-            TYPE_ERROR,
-            TYPE_LAST = TYPE_ERROR
-        };
-
-        Type getType() {
-            return type;
-        }
-
         /// Constructs a new RegistryMessage from the given YAML string.
         /// Only the first YAML document is read, others are ignored.
         ///
@@ -49,14 +37,23 @@ namespace ssoa
         {
         }
 
+        static void install(const char * type, Factory creator);
+
+        template<typename T>
+        struct installer
+        {
+            installer() {
+                install(T::type(), T::fromYaml);
+            }
+        };
+
     protected:
-        RegistryMessage(Type type) :
-            type(type)
+        RegistryMessage()
         {
         }
 
     private:
-        Type type;
+        static std::map<std::string, Factory>& mappings();
     };
 }
 

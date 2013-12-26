@@ -13,7 +13,7 @@ namespace ssoa
     {
     public:
         RegistryRegistrationResponse(bool successful = true, std::string status = "") :
-            RegistryMessage(TYPE_REGISTRATION_RESPONSE), successful(successful), status(std::move(status))
+            successful(successful), status(std::move(status))
         {
         }
 
@@ -25,7 +25,11 @@ namespace ssoa
             return status;
         }
 
-        static RegistryRegistrationResponse * fromYaml(const YAML::Node& node);
+        static const char * type() {
+            return "registration-response";
+        }
+
+        static RegistryMessage * fromYaml(const YAML::Node& node);
         virtual std::string toYaml() const;
 
     private:

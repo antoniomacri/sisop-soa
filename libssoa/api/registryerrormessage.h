@@ -13,7 +13,7 @@ namespace ssoa
     {
     public:
         RegistryErrorMessage(std::string status) :
-            RegistryMessage(TYPE_ERROR), status(std::move(status))
+            status(std::move(status))
         {
         }
 
@@ -21,7 +21,11 @@ namespace ssoa
             return status;
         }
 
-        static RegistryErrorMessage * fromYaml(const YAML::Node& node);
+        static const char * type() {
+            return "error";
+        }
+
+        static RegistryMessage * fromYaml(const YAML::Node& node);
         virtual std::string toYaml() const;
 
     private:

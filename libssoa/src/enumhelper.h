@@ -6,7 +6,6 @@
 #define _ENUMHELPER_H_
 
 #include <servicesignature.h>
-#include <registrymessage.h>
 
 #include <string>
 
@@ -16,7 +15,6 @@ namespace ssoa
     {
     public:
         static const char * serviceParamTypeStrings[];
-        static const char * messageTypeStrings[];
 
         template<typename T>
         static T fromString(const char name[]);
@@ -28,7 +26,6 @@ namespace ssoa
         }
 
         static const char * toString(ServiceSignature::Type type);
-        static const char * toString(RegistryMessage::Type type);
     };
 }
 

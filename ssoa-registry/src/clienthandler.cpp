@@ -99,22 +99,13 @@ namespace ssoa
 
     string ClientHandler::generateResponse(RegistryMessage *request)
     {
-        RegistryMessage::Type type = request->getType();
-        switch (type) {
-            case RegistryMessage::TYPE_REGISTRATION_REQUEST:
-                return generateRegistrationResponse(dynamic_cast<RegistryRegistrationRequest*>(request));
-            case RegistryMessage::TYPE_SERVICE_REQUEST:
-                return generateServiceResponse(dynamic_cast<RegistryServiceRequest*>(request));
-            case RegistryMessage::TYPE_INVALID:
-                case RegistryMessage::TYPE_SERVICE_RESPONSE:
-                case RegistryMessage::TYPE_REGISTRATION_RESPONSE:
-                case RegistryMessage::TYPE_ERROR:
-                // Avoid warning
-                break;
+        if (RegistryRegistrationRequest * regreq = dynamic_cast<RegistryRegistrationRequest*>(request)) {
+            return generateRegistrationResponse(regreq);
         }
-        return RegistryErrorMessage("Unsupported request (type code: "
-                                    + boost::lexical_cast<string>((int)type)
-                                    + ").").toYaml();
+        if (RegistryServiceRequest * srvreq = dynamic_cast<RegistryServiceRequest*>(request)) {
+            return generateServiceResponse(srvreq);
+        }
+        throw std::runtime_error("Unsupported request (class: " + string(typeid(request).name()) + ").");
     }
 
     string ClientHandler::generateRegistrationResponse(RegistryRegistrationRequest *request)

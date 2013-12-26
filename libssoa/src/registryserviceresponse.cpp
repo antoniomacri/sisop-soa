@@ -3,7 +3,6 @@
  */
 
 #include <registryserviceresponse.h>
-#include <enumhelper.h>
 
 #include <stdexcept>
 
@@ -13,10 +12,9 @@ using std::string;
 
 namespace ssoa
 {
-    RegistryServiceResponse * RegistryServiceResponse::fromYaml(const YAML::Node& node)
+    RegistryMessage * RegistryServiceResponse::fromYaml(const YAML::Node& node)
     {
-        RegistryMessage::Type t = EnumHelper::fromString<RegistryMessage::Type>(node["type"].to<string>());
-        if (t != TYPE_SERVICE_RESPONSE)
+        if (node["type"].to<string>() != type())
             throw std::logic_error("Message type mismatch");
 
         auto successful = node.FindValue("successful");
@@ -34,7 +32,7 @@ namespace ssoa
     {
         YAML::Emitter e;
         e << YAML::BeginMap;
-        e << YAML::Key << "type" << YAML::Value << EnumHelper::toString(TYPE_SERVICE_RESPONSE);
+        e << YAML::Key << "type" << YAML::Value << type();
         e << YAML::Key << "successful" << YAML::Value << successful;
         if (successful) {
             e << YAML::Key << "host" << YAML::Value << host;
@@ -47,3 +45,5 @@ namespace ssoa
         return e.c_str();
     }
 }
+
+static ssoa::RegistryMessage::installer<ssoa::RegistryServiceResponse> install;

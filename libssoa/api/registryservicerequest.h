@@ -14,7 +14,7 @@ namespace ssoa
     {
     public:
         RegistryServiceRequest(const ServiceSignature & service) :
-            RegistryMessage(TYPE_SERVICE_REQUEST), service(service)
+            service(service)
         {
         }
 
@@ -22,7 +22,11 @@ namespace ssoa
             return service;
         }
 
-        static RegistryServiceRequest * fromYaml(const YAML::Node& node);
+        static const char * type() {
+            return "service-request";
+        }
+
+        static RegistryMessage * fromYaml(const YAML::Node& node);
         virtual std::string toYaml() const;
 
     private:

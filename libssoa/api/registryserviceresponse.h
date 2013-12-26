@@ -13,12 +13,12 @@ namespace ssoa
     {
     public:
         RegistryServiceResponse(std::string host, std::string port) :
-            RegistryMessage(TYPE_SERVICE_RESPONSE), host(std::move(host)), port(std::move(port)), successful(true)
+            host(std::move(host)), port(std::move(port)), successful(true)
         {
         }
 
         RegistryServiceResponse(std::string status) :
-            RegistryMessage(TYPE_SERVICE_RESPONSE), host(""), port(""), successful(false), status(std::move(status))
+            host(""), port(""), successful(false), status(std::move(status))
         {
         }
 
@@ -38,7 +38,11 @@ namespace ssoa
             return status;
         }
 
-        static RegistryServiceResponse * fromYaml(const YAML::Node& node);
+        static const char * type() {
+            return "service-response";
+        }
+
+        static RegistryMessage * fromYaml(const YAML::Node& node);
         virtual std::string toYaml() const;
 
     private:

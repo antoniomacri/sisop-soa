@@ -66,6 +66,7 @@ namespace ssoa
             }
 
             std::cout << "Reply:\n====\n" << response << "\n===" << std::endl;
+            // After calling c_str(), the string is guaranteed to be null-terminated
             async_write(socket, boost::asio::buffer(response.c_str(), response.size() + 1),
                         boost::bind(&ClientHandler::handleWrite, shared_from_this(),
                                     boost::asio::placeholders::error));

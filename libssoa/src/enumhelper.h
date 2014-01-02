@@ -5,7 +5,7 @@
 #ifndef _ENUMHELPER_H_
 #define _ENUMHELPER_H_
 
-#include <servicesignature.h>
+#include <service/servicesignature.h>
 
 #include <string>
 

@@ -42,7 +42,7 @@ endef
 
 # Takes an argument containing the folder name of the module.
 define GETOBJECTS
-	$(eval SRCS:=$(wildcard $1/src/*.cpp))$(patsubst $1/src/%,$1/obj/%, $(SRCS:.cpp=.o))
+	$(eval SRCS:=$(shell find $1/src -name *.cpp -type f -print))$(patsubst $1/src/%,$1/obj/%, $(SRCS:.cpp=.o))
 endef
 
 
@@ -72,7 +72,7 @@ libssoa/obj/%.o: libssoa/src/%.cpp
 
 -include $(LIBSSOA_DEPS)
 
-CLEAN += $(LIBSSOA_OBJECTS) $(LIBSSOA_DEPS) libssoa/obj
+CLEAN += $(LIBSSOA_OBJECTS) $(LIBSSOA_DEPS) $(shell find libssoa/obj/* -type d -print 2>/dev/null) libssoa/obj
 DISTCLEAN += $(LIBSSOA) $(LIB)
 
 

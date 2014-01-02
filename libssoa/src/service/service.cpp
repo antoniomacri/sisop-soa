@@ -1,6 +1,6 @@
-#include <service.h>
+#include <service/service.h>
 #include <enumhelper.h>
-#include <response.h>
+#include <service/response.h>
 
 #include <boost/asio.hpp>
 #include <yaml-cpp/yaml.h>

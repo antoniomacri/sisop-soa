@@ -5,9 +5,9 @@
 #include "clienthandler.h"
 
 #include <logger.h>
-#include <registryerrormessage.h>
-#include <registryregistrationresponse.h>
-#include <registryserviceresponse.h>
+#include <registry/registryerrormessage.h>
+#include <registry/registryregistrationresponse.h>
+#include <registry/registryserviceresponse.h>
 
 #include <vector>
 #include <fstream>

@@ -655,7 +655,8 @@ WARN_LOGFILE           =
 # with spaces.
 
 INPUT                  = \
-  libssoa/api libssoa/src \
+  libssoa/api libssoa/api/registry libssoa/api/service \
+  libssoa/src libssoa/src/registry libssoa/src/service \
   ssoa-registry/include ssoa-registry/src
 
 # This tag can be used to specify the character encoding of the source files

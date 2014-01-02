@@ -2,7 +2,7 @@
  * registrymessage.cpp
  */
 
-#include <registrymessage.h>
+#include <registry/registrymessage.h>
 
 #include <sstream>
 #include <stdexcept>

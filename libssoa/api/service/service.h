@@ -1,8 +1,8 @@
 #ifndef _SERVICE_H_
 #define _SERVICE_H_
 
-#include <response.h>
-#include <servicesignature.h>
+#include <service/response.h>
+#include <service/servicesignature.h>
 
 #include <deque>
 #include <string>

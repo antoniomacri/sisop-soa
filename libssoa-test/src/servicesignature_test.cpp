@@ -2,7 +2,7 @@
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MAIN
 
-#include <servicesignature.h>
+#include <service/servicesignature.h>
 
 #include <boost/test/unit_test.hpp>
 

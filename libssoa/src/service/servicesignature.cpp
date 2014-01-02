@@ -2,7 +2,7 @@
  * servicesignature.cpp
  */
 
-#include <servicesignature.h>
+#include <service/servicesignature.h>
 #include <enumhelper.h>
 
 #include <boost/regex.hpp>

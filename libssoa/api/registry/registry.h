@@ -5,8 +5,8 @@
 #ifndef _REGISTRY_H_
 #define _REGISTRY_H_
 
-#include <service.h>
-#include <registrymessage.h>
+#include <service/service.h>
+#include <registry/registrymessage.h>
 
 #include <string>
 

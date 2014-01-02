@@ -5,7 +5,7 @@
 #ifndef _REGISTRYIMPL_H_
 #define _REGISTRYIMPL_H_
 
-#include <servicesignature.h>
+#include <service/servicesignature.h>
 
 #include <list>
 #include <map>

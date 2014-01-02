@@ -2,7 +2,7 @@
  * registryregistrationrequest.cpp
  */
 
-#include <registryregistrationrequest.h>
+#include <registry/registryregistrationrequest.h>
 
 #include <stdexcept>
 

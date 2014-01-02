@@ -1,8 +1,8 @@
-#include "registry.h"
-#include <registryregistrationrequest.h>
-#include <registryregistrationresponse.h>
-#include <registryservicerequest.h>
-#include <registryserviceresponse.h>
+#include <registry/registry.h>
+#include <registry/registryregistrationrequest.h>
+#include <registry/registryregistrationresponse.h>
+#include <registry/registryservicerequest.h>
+#include <registry/registryserviceresponse.h>
 
 #include <stdexcept>
 #include <stdlib.h>

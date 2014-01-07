@@ -110,7 +110,7 @@ registry: $(REGISTRY)
 REGISTRY_INCLUDES := ssoa-registry/include ssoa-registry/src libssoa/api
 REGISTRY_OBJECTS := $(call GETOBJECTS,ssoa-registry)
 REGISTRY_DEPS := $(REGISTRY_OBJECTS:.o=.d)
-REGISTRY_LIBS := ssoa boost_thread pthread boost_regex boost_system yaml-cpp
+REGISTRY_LIBS := ssoa boost_thread pthread boost_regex boost_system boost_program_options yaml-cpp
 
 $(REGISTRY): $(LIBSSOA) $(REGISTRY_OBJECTS)
 	$(call LINK,$(REGISTRY_OBJECTS),$(REGISTRY_LIBS))

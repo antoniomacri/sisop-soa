@@ -51,7 +51,7 @@ namespace ssoa
         }
 
         /// Gets the identifier of this type of message (used for deserialization).
-        static const char * type() {
+        static const char * messageType() {
             return "service-response";
         }
 

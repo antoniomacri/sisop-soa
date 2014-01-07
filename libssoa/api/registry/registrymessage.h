@@ -5,8 +5,7 @@
 #ifndef _REGISTRYMESSAGE_H_
 #define _REGISTRYMESSAGE_H_
 
-#include <map>
-#include <string>
+#include <factorybase.h>
 
 // Forward-declare YAML::Node
 namespace YAML
@@ -20,11 +19,13 @@ namespace ssoa
     class RegistryMessage
     {
     public:
-        /// Represents a method which generates a RegistryMessage from the given
-        /// @c YAML::Node.
-        /// This method must not return @c NULL. If the message cannot be constructed,
-        /// an exception @c std::runtime_error must be thrown.
-        typedef RegistryMessage * (*Factory)(const YAML::Node&);
+        /// Just a shortcut.
+        typedef FactoryBase<RegistryMessage, const YAML::Node&> Factory;
+
+        /// Gets an identifier of the RegistryMessage hierarchy (used by FactoryBase).
+        static const char * hierarchyName() {
+            return stringify(RegistryMessage);
+        }
 
         /// Constructs a new RegistryMessage from the given YAML string.
         ///
@@ -49,25 +50,18 @@ namespace ssoa
         {
         }
 
-        /// Installs a new deserialization handler for a specific message type.
-        ///
-        /// @param type A null-terminated string identifying the message type
-        /// @param creator A function which handles the creation of the message.
-        ///
-        /// @see Factory
-        static void install(const char * type, Factory creator);
-
         /// Simplifies the installation of a new deserialization handler.
         ///
         /// @tparam T The class to register for the deserialization process.
         ///
         /// The class @p T must meet two requirements:
-        ///   1. must have a method @c type() returning a char array or a string
+        ///   1. must have a method @c messageType() returning a char array or a string
         ///      which contains the identifier of the message type
         ///   2. must have a static method @c fromYaml() with the following signature:
         ///      @code RegistryMessage * fromYaml(const YAML::Node& node); @endcode
         ///
-        /// @see Factory for further information about the @c fromYaml() behavior.
+        /// @see Factory::CreatorMethod
+        ///      for further information about the @c fromYaml() behavior.
         ///
         /// @par Example
         /// To install a new deserialization handler, it is sufficient to add a line like
@@ -79,7 +73,7 @@ namespace ssoa
         struct installer
         {
             installer() {
-                install(T::type(), T::fromYaml);
+                Factory::install(T::messageType(), T::fromYaml);
             }
         };
 
@@ -87,10 +81,6 @@ namespace ssoa
         RegistryMessage()
         {
         }
-
-    private:
-        /// Contains mappings between a class identifier and its "named constructor"
-        static std::map<std::string, Factory>& mappings();
     };
 }
 

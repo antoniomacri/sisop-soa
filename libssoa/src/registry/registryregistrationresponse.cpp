@@ -14,7 +14,7 @@ namespace ssoa
 {
     RegistryMessage * RegistryRegistrationResponse::fromYaml(const YAML::Node& node)
     {
-        if (node["type"].to<string>() != type())
+        if (node["type"].to<string>() != messageType())
             throw std::logic_error("Message type mismatch");
 
         bool successful = node["successful"].to<bool>();
@@ -26,7 +26,7 @@ namespace ssoa
     {
         YAML::Emitter e;
         e << YAML::BeginMap;
-        e << YAML::Key << "type" << YAML::Value << type();
+        e << YAML::Key << "type" << YAML::Value << messageType();
         e << YAML::Key << "successful" << YAML::Value << successful;
         if (!status.empty()) {
             e << YAML::Key << "status" << YAML::Value << status;

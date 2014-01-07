@@ -18,7 +18,7 @@ namespace ssoa
             throw std::logic_error("Message type mismatch");
 
         bool successful = node["successful"].to<bool>();
-        string status = node["status"].to<string>();
+        string status = node.FindValue("status") ? node["status"].to<string>() : "";
         return new RegistryRegistrationResponse(successful, status);
     }
 

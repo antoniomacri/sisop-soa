@@ -19,28 +19,17 @@ namespace ssoa
     public:
         static ServiceSignature any;
 
-        enum Type
-        {
-            TYPE_INVALID = 0,
-            TYPE_INT = 1,
-            TYPE_DOUBLE = 2,
-            TYPE_STRING = 3,
-            TYPE_BUFFER = 4,
-            TYPE_LAST = TYPE_BUFFER
-        };
-
         ServiceSignature(const std::string & signature);
-        ServiceSignature(const std::string & name, Type inputParams[], Type outputParams[]);
 
         const std::string & getName() const {
             return name;
         }
 
-        const std::vector<Type> & getInputParams() const {
+        const std::vector<std::string> & getInputParams() const {
             return inputParams;
         }
 
-        const std::vector<Type> & getOutputParams() const {
+        const std::vector<std::string> & getOutputParams() const {
             return outputParams;
         }
 
@@ -63,8 +52,8 @@ namespace ssoa
     private:
         std::string name;
         std::string signature;
-        std::vector<Type> inputParams;
-        std::vector<Type> outputParams;
+        std::vector<std::string> inputParams;
+        std::vector<std::string> outputParams;
         bool is_valid;
 
         ServiceSignature() :

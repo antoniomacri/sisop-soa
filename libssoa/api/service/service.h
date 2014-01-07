@@ -68,26 +68,26 @@ namespace ssoa
         struct Argument
         {
             const void * value;
-            const ServiceSignature::Type type;
+            const std::string type;
             const int size;
 
             Argument(const int32_t * arg) :
-                value(arg), type(ServiceSignature::TYPE_INT), size(sizeof(int32_t))
+                value(arg), type("int"), size(sizeof(int32_t))
             {
             }
             Argument(const double * arg) :
-                value(arg), type(ServiceSignature::TYPE_DOUBLE), size(sizeof(double))
+                value(arg), type("double"), size(sizeof(double))
             {
             }
             Argument(const std::string * arg) :
-                value(arg->data()), type(ServiceSignature::TYPE_STRING), size(sizeof(arg->size()))
+                value(arg->data()), type("string"), size(sizeof(arg->size()))
             {
             }
             Argument(const std::vector<byte> * arg) :
-                value(arg->data()), type(ServiceSignature::TYPE_BUFFER), size(sizeof(arg->size()))
+                value(arg->data()), type("buffer"), size(sizeof(arg->size()))
             {
             }
-            Argument(const void * value, ServiceSignature::Type type, int size) :
+            Argument(const void * value, std::string type, int size) :
                 value(value), type(type), size(size)
             {
             }

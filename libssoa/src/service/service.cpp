@@ -1,5 +1,4 @@
 #include <service/service.h>
-#include <enumhelper.h>
 #include <service/response.h>
 
 #include <boost/asio.hpp>
@@ -17,7 +16,7 @@ namespace ssoa
 {
     void Service::throw_invalid_argument(int index) const
         {
-        string expected = EnumHelper::toString(signature.getInputParams()[index]);
+        string expected = signature.getInputParams()[index];
         throw std::logic_error("Invalid argument (must be '" + expected + "').");
     }
 
@@ -30,28 +29,28 @@ namespace ssoa
 
     void Service::pushArgument(const int32_t *arg)
     {
-        if (signature.getInputParams()[arguments.size()] != ServiceSignature::TYPE_INT)
+        if (signature.getInputParams()[arguments.size()] != string("int"))
             throw_invalid_argument(arguments.size());
         arguments.push_back(Argument(arg));
     }
 
     void Service::pushArgument(const double *arg)
     {
-        if (signature.getInputParams()[arguments.size()] != ServiceSignature::TYPE_DOUBLE)
+        if (signature.getInputParams()[arguments.size()] != string("double"))
             throw_invalid_argument(arguments.size());
         arguments.push_back(Argument(arg));
     }
 
     void Service::pushArgument(const string *arg)
     {
-        if (signature.getInputParams()[arguments.size()] != ServiceSignature::TYPE_STRING)
+        if (signature.getInputParams()[arguments.size()] != string("string"))
             throw_invalid_argument(arguments.size());
         arguments.push_back(Argument(arg));
     }
 
     void Service::pushArgument(const std::vector<byte> *arg)
     {
-        if (signature.getInputParams()[arguments.size()] != ServiceSignature::TYPE_BUFFER)
+        if (signature.getInputParams()[arguments.size()] != string("buffer"))
             throw_invalid_argument(arguments.size());
         arguments.push_back(Argument(arg));
     }
@@ -59,7 +58,7 @@ namespace ssoa
     void Service::popArgument(int32_t *arg)
     {
         Argument& a = arguments.front();
-        if (a.type != ServiceSignature::TYPE_INT)
+        if (a.type != string("int"))
             throw_invalid_argument(0);
         *arg = *((int*)a.value);
         arguments.pop_front();
@@ -68,7 +67,7 @@ namespace ssoa
     void Service::popArgument(double *arg)
     {
         Argument& a = arguments.front();
-        if (a.type != ServiceSignature::TYPE_DOUBLE)
+        if (a.type != string("double"))
             throw_invalid_argument(0);
         *arg = *((double*)a.value);
         arguments.pop_front();
@@ -77,7 +76,7 @@ namespace ssoa
     void Service::popArgument(string *arg)
     {
         Argument& a = arguments.front();
-        if (a.type != ServiceSignature::TYPE_STRING)
+        if (a.type != string("string"))
             throw_invalid_argument(0);
         *arg = *((string*)a.value);
         arguments.pop_front();
@@ -86,7 +85,7 @@ namespace ssoa
     void Service::popArgument(std::vector<byte> *arg)
     {
         Argument& a = arguments.front();
-        if (a.type != ServiceSignature::TYPE_BUFFER)
+        if (a.type != string("buffer"))
             throw_invalid_argument(0);
         *arg = *((vector<byte>*)a.value);
         arguments.pop_front();
@@ -145,9 +144,11 @@ namespace ssoa
         }
 
         Service *service = new Service(signature);
-        const vector<ServiceSignature::Type> & params = signature.getInputParams();
+        const vector<string> & params = signature.getInputParams();
         for (unsigned i = 0; i < params.size(); i++) {
             void *buffer, *object;
+            /*
+            // TODO: deserialize service arguments
             switch (params[i]) {
                 case ServiceSignature::TYPE_INT:
                     // TODO: should we check if block[i]==sizeof(int32_t)?
@@ -174,6 +175,7 @@ namespace ssoa
                 case ServiceSignature::TYPE_INVALID:
                     break;
             }
+            */
             stream.read((char*)buffer, blocks[i]);
             // TODO: check if gcount()==blocks[i]
             service->arguments.push_back(Argument(object, params[i], blocks[i]));

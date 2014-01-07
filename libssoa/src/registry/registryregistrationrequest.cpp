@@ -20,7 +20,7 @@ namespace ssoa
         string service = node["service"].to<string>();
         string host = node["host"].to<string>();
         string port = node["port"].to<string>();
-        bool deregister = node["deregister"].to<bool>();
+        bool deregister = node.FindValue("deregister") ? node["deregister"].to<bool>() : false;
         return new RegistryRegistrationRequest(service, host, port, deregister);
     }
 

@@ -50,7 +50,7 @@ endef
 ### Main target
 ###
 .PHONY: all
-all: library registry
+all: library registry storageprovider
 
 
 ###
@@ -122,6 +122,30 @@ ssoa-registry/obj/%.o: ssoa-registry/src/%.cpp
 
 CLEAN += $(REGISTRY_OBJECTS) $(REGISTRY_DEPS) ssoa-registry/obj
 DISTCLEAN += $(REGISTRY) $(BIN)
+
+
+###
+### ssoa-storageprovider
+###
+STORAGEPROVIDER := $(BIN)/ssoa-storageprovider
+.PHONY: storageprovider
+storageprovider: $(STORAGEPROVIDER)
+
+STORAGEPROVIDER_INCLUDES := ssoa-storageprovider/include ssoa-storageprovider/src libssoa/api
+STORAGEPROVIDER_OBJECTS := $(call GETOBJECTS,ssoa-storageprovider)
+STORAGEPROVIDER_DEPS := $(STORAGEPROVIDER_OBJECTS:.o=.d)
+STORAGEPROVIDER_LIBS := ssoa boost_thread pthread boost_regex boost_system boost_program_options yaml-cpp
+
+$(STORAGEPROVIDER): $(LIBSSOA) $(STORAGEPROVIDER_OBJECTS)
+	$(call LINK,$(STORAGEPROVIDER_OBJECTS),$(STORAGEPROVIDER_LIBS))
+
+ssoa-storageprovider/obj/%.o: ssoa-storageprovider/src/%.cpp
+	$(call COMPILE,$(STORAGEPROVIDER_INCLUDES))
+
+-include $(STORAGEPROVIDER_DEPS)
+
+CLEAN += $(STORAGEPROVIDER_OBJECTS) $(STORAGEPROVIDER_DEPS) ssoa-storageprovider/obj
+DISTCLEAN += $(STORAGEPROVIDER) $(BIN)
 
 
 ###

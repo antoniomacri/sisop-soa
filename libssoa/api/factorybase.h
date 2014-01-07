@@ -7,6 +7,7 @@
 
 #include <map>
 #include <string>
+#include <utility>
 
 namespace ssoa
 {
@@ -24,6 +25,14 @@ namespace ssoa
         /// This method should not return @c NULL. If the message cannot be constructed,
         /// an exception @c std::runtime_error should be thrown.
         typedef T * (*CreatorMethod)(Args ... args);
+
+        /// Checks if a handler for the specified class is installed.
+        ///
+        /// @param className A null-terminated string identifying the class.
+        static bool contains(const std::string className)
+        {
+            return mappings().find(className) != mappings().end();
+        }
 
         /// Installs the creation handler for the specified class belonging to the hierarchy of @c T.
         ///
@@ -61,7 +70,7 @@ namespace ssoa
                                          std::string(": Unknown message type: \"")
                                          + className + "\".");
             }
-            return (iter->second)(args...);
+            return (iter->second)(std::forward<Args>(args)...);
         }
 
     private:

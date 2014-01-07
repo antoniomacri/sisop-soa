@@ -62,6 +62,11 @@ namespace ssoa
 
         std::vector<boost::asio::const_buffer> getConstBuffers() const;
 
+        Service(ServiceSignature signature, arg_deque arguments) :
+            signature(std::move(signature)), arguments(std::move(arguments))
+        {
+        }
+
     private:
         ServiceSignature signature;
         arg_deque arguments;

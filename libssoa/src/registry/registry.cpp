@@ -3,6 +3,7 @@
 #include <registry/registryregistrationresponse.h>
 #include <registry/registryservicerequest.h>
 #include <registry/registryserviceresponse.h>
+#include <service/servicestub.h>
 
 #include <stdexcept>
 #include <stdlib.h>
@@ -72,8 +73,7 @@ namespace ssoa
     {
         RegistryServiceResponse * response = (RegistryServiceResponse*)submit(RegistryServiceRequest(signature));
         if (response != NULL && response->isSuccessful()) {
-            // TODO: return a service which contains host and port?
-            // return new Service(signature, response->getHost(), response->getPort());
+            return new ServiceStub(signature, response->getHost(), response->getPort());
         }
         return NULL;
     }

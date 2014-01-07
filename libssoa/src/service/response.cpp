@@ -8,28 +8,34 @@ using namespace std;
 
 namespace ssoa
 {
-    Response::Response()
+    vector<boost::asio::const_buffer> Response::getConstBuffers() const
     {
-    }
+        if (arguments.size() < signature.getOutputParams().size()) {
+            int n = signature.getOutputParams().size() - arguments.size();
+            throw std::logic_error("Still missing " + boost::lexical_cast<string>(n) + " argument(s).");
+        }
 
-    void Response::getArgument(int *arg)
-    {
-    }
+        // Construct the YAML header
+        YAML::Emitter e;
+        e << YAML::BeginMap;
+        e << YAML::Key << "service" << YAML::Value << signature;
+        e << YAML::Key << "successful" << YAML::Value << successful;
+        e << YAML::Key << "blocks";
+        e << YAML::BeginSeq;
+        for (unsigned i = 0; i < arguments.size(); i++) {
+            e << boost::asio::buffer_size(arguments[i]->getData());
+        }
+        e << YAML::EndSeq;
+        e << YAML::EndMap;
 
-    void Response::getArgument(double *arg)
-    {
-    }
+        vector<boost::asio::const_buffer> buffers;
+        buffers.push_back(boost::asio::buffer(string(e.c_str())));
 
-    void Response::getArgument(string *arg)
-    {
-    }
+        // Add the payload with data blocks
+        for (unsigned i = 0; i < arguments.size(); i++) {
+            buffers.push_back(arguments[i]->getData());
+        }
 
-    void Response::getArgument(vector<byte> *arg)
-    {
-    }
-
-    Response * Response::fromStream(iostream& stream)
-    {
-        return NULL;
+        return buffers;
     }
 }

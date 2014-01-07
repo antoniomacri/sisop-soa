@@ -28,10 +28,10 @@ namespace ssoa
         return false;
     }
 
-    bool RegistryImpl::unregisterService(ServiceSignature service, std::string host, std::string port)
+    bool RegistryImpl::deregisterService(ServiceSignature service, std::string host, std::string port)
     {
         if (service == ServiceSignature::any) {
-            return unregisterServer(host, port) > 0;
+            return deregisterServer(host, port) > 0;
         }
         if (service.isValid()) {
             std::lock_guard<std::mutex> lock(mutex);
@@ -48,7 +48,7 @@ namespace ssoa
         return false;
     }
 
-    int RegistryImpl::unregisterServer(std::string host, std::string port)
+    int RegistryImpl::deregisterServer(std::string host, std::string port)
     {
         std::lock_guard<std::mutex> lock(mutex);
         int count = 0;

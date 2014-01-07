@@ -50,7 +50,7 @@ namespace ssoa
         return successful;
     }
 
-    bool Registry::unregisterService(const ServiceSignature & signature, const string & host, const string & port)
+    bool Registry::deregisterService(const ServiceSignature & signature, const string & host, const string & port)
     {
         RegistryRegistrationRequest request(signature, host, port, true);
         RegistryRegistrationResponse * response = dynamic_cast<RegistryRegistrationResponse*>(submit(request));
@@ -59,7 +59,7 @@ namespace ssoa
         return successful;
     }
 
-    bool Registry::unregisterProvider(const string & host)
+    bool Registry::deregisterProvider(const string & host)
     {
         RegistryRegistrationRequest request(ServiceSignature::any, host, 0);
         RegistryRegistrationResponse * response = dynamic_cast<RegistryRegistrationResponse*>(submit(request));

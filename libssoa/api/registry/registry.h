@@ -25,8 +25,8 @@ namespace ssoa
         }
 
         static bool registerService(const ServiceSignature & signature, const string & host, const string & port);
-        static bool unregisterService(const ServiceSignature & signature, const string & host, const string & port);
-        static bool unregisterProvider(const string & host);
+        static bool deregisterService(const ServiceSignature & signature, const string & host, const string & port);
+        static bool deregisterProvider(const string & host);
 
         static Service * getService(const ServiceSignature & signature);
 

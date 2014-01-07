@@ -115,11 +115,11 @@ namespace ssoa
         string service = request->getService();
         string host = request->getHost();
         string port = request->getPort();
-        bool unregister = request->getUnregister();
+        bool deregister = request->getDeregister();
         try {
             bool result;
-            if (unregister)
-                result = registry.unregisterService(ServiceSignature(service), host, port);
+            if (deregister)
+                result = registry.deregisterService(ServiceSignature(service), host, port);
             else
                 result = registry.registerService(ServiceSignature(service), host, port);
             return RegistryRegistrationResponse(result).toYaml();

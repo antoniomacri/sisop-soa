@@ -21,9 +21,9 @@ namespace ssoa
 
         bool registerService(ServiceSignature service, std::string host, std::string port);
 
-        bool unregisterService(ServiceSignature service, std::string host, std::string port);
+        bool deregisterService(ServiceSignature service, std::string host, std::string port);
 
-        int unregisterServer(std::string host, std::string port);
+        int deregisterServer(std::string host, std::string port);
 
         bool lookupService(const ServiceSignature& service, std::string& host, std::string& port);
 

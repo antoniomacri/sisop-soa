@@ -20,8 +20,8 @@ namespace ssoa
         string service = node["service"].to<string>();
         string host = node["host"].to<string>();
         string port = node["port"].to<string>();
-        bool unregister = node["unregister"].to<bool>();
-        return new RegistryRegistrationRequest(service, host, port, unregister);
+        bool deregister = node["deregister"].to<bool>();
+        return new RegistryRegistrationRequest(service, host, port, deregister);
     }
 
     string RegistryRegistrationRequest::toYaml() const
@@ -32,8 +32,8 @@ namespace ssoa
         e << YAML::Key << "service" << YAML::Value << service;
         e << YAML::Key << "host" << YAML::Value << host;
         e << YAML::Key << "port" << YAML::Value << port;
-        if (unregister) {
-            e << YAML::Key << "unregister" << YAML::Value << unregister;
+        if (deregister) {
+            e << YAML::Key << "deregister" << YAML::Value << deregister;
         }
         e << YAML::EndMap;
         return e.c_str();

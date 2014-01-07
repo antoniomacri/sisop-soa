@@ -23,7 +23,7 @@ namespace ssoa
         ///        service.
         RegistryRegistrationRequest(
             const ServiceSignature& service, std::string host, std::string port, bool deregister = false) :
-            service(service), host(std::move(host)), port(std::move(port)), unregister(deregister)
+            service(service), host(std::move(host)), port(std::move(port)), deregister(deregister)
         {
         }
 
@@ -43,8 +43,8 @@ namespace ssoa
         }
 
         /// Gets a value indicating whether the service has to be deregistered.
-        bool getUnregister() const {
-            return unregister;
+        bool getDeregister() const {
+            return deregister;
         }
 
         /// Gets the identifier of this type of message (used for deserialization).
@@ -61,7 +61,7 @@ namespace ssoa
         ServiceSignature service;
         std::string host;
         std::string port;
-        bool unregister;
+        bool deregister;
     };
 }
 

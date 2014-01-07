@@ -72,7 +72,8 @@ namespace ssoa
     {
         RegistryServiceResponse * response = (RegistryServiceResponse*)submit(RegistryServiceRequest(signature));
         if (response != NULL && response->isSuccessful()) {
-            return new Service(signature, response->getHost(), response->getPort());
+            // TODO: return a service which contains host and port?
+            // return new Service(signature, response->getHost(), response->getPort());
         }
         return NULL;
     }

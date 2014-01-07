@@ -1,102 +1,70 @@
+/*
+ * service.h
+ */
+
 #ifndef _SERVICE_H_
 #define _SERVICE_H_
 
-#include <service/response.h>
+#include <service/serviceargument.h>
 #include <service/servicesignature.h>
 
 #include <deque>
+#include <memory>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
-#include <boost/cstdint.hpp>
-
 namespace ssoa
 {
-    typedef unsigned char byte;
-
     class Service
     {
     public:
-        Service(const ServiceSignature & signature) :
-            signature(signature), host(""), port("")
+        Service(ServiceSignature signature) :
+            signature(std::move(signature))
         {
         }
 
-        Service(ServiceSignature signature, std::string host, std::string port) :
-            signature(std::move(signature)), host(std::move(host)), port(std::move(port))
-        {
-        }
-
-        void pushArgument(const int32_t * arg);
-        void pushArgument(const double * arg);
-        void pushArgument(const std::string * arg);
-        void pushArgument(const std::vector<byte> * arg);
-
-        void popArgument(int32_t * arg);
-        void popArgument(double * arg);
-        void popArgument(std::string * arg);
-        void popArgument(std::vector<byte> * arg);
-
-        Response * submit();
-        static Service * fromStream(std::istream stream);
-
-        const std::string & getName() const
-        {
+        /// Gets the name of the requested service.
+        const std::string & getName() const {
             return signature.getName();
         }
 
-        const ServiceSignature & getSignature() const
-        {
+        /// Gets the signature of the requested service.
+        const ServiceSignature & getSignature() const {
             return signature;
         }
 
-        const std::string & getHost() const
+        template<class ServArg>
+        void pushArgument(const ServArg *arg)
         {
-            return host;
+            if (signature.getOutputParams()[arguments.size()] != ServArg::className()) {
+                std::string expected = signature.getOutputParams()[arguments.size()];
+                throw std::logic_error("Invalid argument (must be '" + expected + "').");
+            }
+            arguments.push_back(std::unique_ptr<const ServiceArgument>(arg));
         }
 
-        const std::string & getPort() const
-        {
-            return port;
+        template<class ServArg>
+        const ServArg* popArgument() {
+            ServiceArgument *a = arguments.front();
+            ServArg *result = dynamic_cast<ServArg*>(a);
+            if (result == NULL) {
+                std::string expected = signature.getOutputParams()[0];
+                throw std::logic_error("Invalid argument (must be '" + expected + "').");
+            }
+            arguments.pop_front();
+            return result;
         }
+
+    protected:
+        /// Just a shortcut.
+        typedef std::deque<std::unique_ptr<const ServiceArgument>> arg_deque;
+
+        std::vector<boost::asio::const_buffer> getConstBuffers() const;
 
     private:
         ServiceSignature signature;
-        std::string host;
-        std::string port;
-
-        struct Argument
-        {
-            const void * value;
-            const std::string type;
-            const int size;
-
-            Argument(const int32_t * arg) :
-                value(arg), type("int"), size(sizeof(int32_t))
-            {
-            }
-            Argument(const double * arg) :
-                value(arg), type("double"), size(sizeof(double))
-            {
-            }
-            Argument(const std::string * arg) :
-                value(arg->data()), type("string"), size(sizeof(arg->size()))
-            {
-            }
-            Argument(const std::vector<byte> * arg) :
-                value(arg->data()), type("buffer"), size(sizeof(arg->size()))
-            {
-            }
-            Argument(const void * value, std::string type, int size) :
-                value(value), type(type), size(size)
-            {
-            }
-        };
-
-        std::deque<Argument> arguments;
-
-        inline void throw_invalid_argument(int index) const;
-        inline void throw_missing_arguments() const;
+        arg_deque arguments;
     };
 }
 

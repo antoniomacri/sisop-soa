@@ -9,7 +9,7 @@
 
 namespace storageprovider
 {
-    /// Represents an image-storage service from the client perspective.
+    /// Represents the service of sending an image to the storage provider.
     class StoreImageService: public ssoa::ServiceStub
     {
         /// Just a shortcut.
@@ -25,18 +25,30 @@ namespace storageprovider
         {
         }
 
+        /// Gets a string representing the status of the operation.
+        const std::string& getStatus() const {
+            return status;
+        }
+
         /// Executes the service request, that is, sends an image with the given name
         /// to the server.
         ///
         /// @param name The name used to identify the image on the server.
         /// @param buffer The buffer containing the image data.
         bool invoke(std::string name, std::vector<byte> buffer) {
-            pushArgument(new ssoa::ServiceStringArgument(name));
-            pushArgument(new ssoa::ServiceBufferArgument(buffer));
+            using namespace std;
+            using namespace ssoa;
 
-            std::unique_ptr<ssoa::Response> response(ServiceStub::submit());
+            pushArgument(new ServiceStringArgument(name));
+            pushArgument(new ServiceBufferArgument(buffer));
+
+            unique_ptr<Response> response(ServiceStub::submit());
+            status = response->getStatus();
             return response->isSuccessful();
         }
+
+    private:
+        std::string status;
     };
 }
 

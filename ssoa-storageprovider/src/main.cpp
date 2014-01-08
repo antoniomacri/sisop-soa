@@ -19,6 +19,18 @@ using namespace std;
 using namespace storageprovider;
 namespace po = boost::program_options;
 
+void registerService(string signature, const string& address, const string& port)
+{
+    Registry::registerService(signature, address, port);
+    Logger::info() << "Registered service \"" << signature << "\" on the registry." << endl;
+}
+
+void deregisterService(string signature, const string& address, const string& port)
+{
+    Registry::deregisterService(signature, address, port);
+    Logger::info() << "Deregistered service \"" << signature << "\" from the registry." << endl;
+}
+
 int main(int argc, char* argv[])
 {
     string address, port;
@@ -71,8 +83,7 @@ int main(int argc, char* argv[])
     Logger::info() << "Initialized registry as " << registryAddress << ":" << registryPort << "." << endl;
 
     try {
-        Registry::registerService(string(StoreImageServiceImpl::serviceSignature()), address, port);
-        Logger::info() << "Services registered on the registry." << endl;
+        registerService(StoreImageServiceImpl::serviceSignature(), address, port);
     }
     catch (const exception& e) {
         Logger::error() << "Caught an exception: " << e.what() << endl;
@@ -93,8 +104,7 @@ int main(int argc, char* argv[])
     }
 
     try {
-        Registry::deregisterService(string(StoreImageServiceImpl::serviceSignature()), address, port);
-        Logger::info() << "Services deregistered from the registry." << endl;
+        deregisterService(StoreImageServiceImpl::serviceSignature(), address, port);
     }
     catch (const exception& e) {
         Logger::error() << "Caught an exception: " << e.what() << endl;

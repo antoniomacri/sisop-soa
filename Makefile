@@ -50,7 +50,7 @@ endef
 ### Main target
 ###
 .PHONY: all
-all: library registry storageprovider
+all: library registry storageprovider imagemanipulationprovider
 
 
 ###
@@ -146,6 +146,30 @@ ssoa-storageprovider/obj/%.o: ssoa-storageprovider/src/%.cpp
 
 CLEAN += $(STORAGEPROVIDER_OBJECTS) $(STORAGEPROVIDER_DEPS) ssoa-storageprovider/obj
 DISTCLEAN += $(STORAGEPROVIDER) $(BIN)
+
+
+###
+### ssoa-imagemanipulationprovider
+###
+IMAGEMANIPULATIONPROVIDER := $(BIN)/ssoa-imagemanipulationprovider
+.PHONY: imagemanipulationprovider
+imagemanipulationprovider: $(IMAGEMANIPULATIONPROVIDER)
+
+IMAGEMANIPULATIONPROVIDER_INCLUDES := ssoa-imagemanipulationprovider/src libssoa/api
+IMAGEMANIPULATIONPROVIDER_OBJECTS := $(call GETOBJECTS,ssoa-imagemanipulationprovider)
+IMAGEMANIPULATIONPROVIDER_DEPS := $(IMAGEMANIPULATIONPROVIDER_OBJECTS:.o=.d)
+IMAGEMANIPULATIONPROVIDER_LIBS := ssoa boost_thread pthread boost_regex boost_system boost_program_options yaml-cpp
+
+$(IMAGEMANIPULATIONPROVIDER): $(LIBSSOA) $(IMAGEMANIPULATIONPROVIDER_OBJECTS)
+	$(call LINK,$(IMAGEMANIPULATIONPROVIDER_OBJECTS),$(IMAGEMANIPULATIONPROVIDER_LIBS))
+
+ssoa-imagemanipulationprovider/obj/%.o: ssoa-imagemanipulationprovider/src/%.cpp
+	$(call COMPILE,$(IMAGEMANIPULATIONPROVIDER_INCLUDES))
+
+-include $(IMAGEMANIPULATIONPROVIDER_DEPS)
+
+CLEAN += $(IMAGEMANIPULATIONPROVIDER_OBJECTS) $(IMAGEMANIPULATIONPROVIDER_DEPS) ssoa-imagemanipulationprovider/obj
+DISTCLEAN += $(IMAGEMANIPULATIONPROVIDER) $(BIN)
 
 
 ###

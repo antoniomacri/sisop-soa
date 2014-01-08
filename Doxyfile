@@ -659,6 +659,7 @@ INPUT                  = \
   libssoa/src libssoa/src/registry libssoa/src/service \
   ssoa-registry/include ssoa-registry/src \
   ssoa-storageprovider/api ssoa-storageprovider/src \
+  ssoa-imagemanipulationprovider/api ssoa-imagemanipulationprovider/src \
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is

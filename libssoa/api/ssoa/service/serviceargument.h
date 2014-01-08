@@ -223,7 +223,7 @@ namespace ssoa
         }
 
         /// Gets the value of the argument.
-        const std::string& getValue() const {
+        std::string& getValue() {
             return value;
         }
 
@@ -272,7 +272,7 @@ namespace ssoa
         }
 
         /// Gets the value of the argument.
-        const std::vector<byte>& getValue() const {
+        std::vector<byte>& getValue() {
             return value;
         }
 

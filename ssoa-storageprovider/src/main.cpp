@@ -4,6 +4,8 @@
 
 #include <listener.h>
 #include <storeimageserviceimpl.h>
+#include <getimageserviceimpl.h>
+#include <getlistserviceimpl.h>
 
 #include <iostream>
 
@@ -84,6 +86,8 @@ int main(int argc, char* argv[])
 
     try {
         registerService(StoreImageServiceImpl::serviceSignature(), address, port);
+        registerService(GetImageServiceImpl::serviceSignature(), address, port);
+        registerService(GetListServiceImpl::serviceSignature(), address, port);
     }
     catch (const exception& e) {
         Logger::error() << "Caught an exception: " << e.what() << endl;
@@ -99,12 +103,14 @@ int main(int argc, char* argv[])
     }
     catch (const exception& e) {
         Logger::error() << "Caught an exception: " << e.what() << endl;
-        // Do not return: deregister service.
+        // Do not return: deregister services.
         status = EXIT_FAILURE;
     }
 
     try {
         deregisterService(StoreImageServiceImpl::serviceSignature(), address, port);
+        deregisterService(GetImageServiceImpl::serviceSignature(), address, port);
+        deregisterService(GetListServiceImpl::serviceSignature(), address, port);
     }
     catch (const exception& e) {
         Logger::error() << "Caught an exception: " << e.what() << endl;

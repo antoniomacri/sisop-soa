@@ -5,7 +5,7 @@
 #ifndef _REGISTRYREGISTRATIONRESPONSE_H_
 #define _REGISTRYREGISTRATIONRESPONSE_H_
 
-#include <registry/registrymessage.h>
+#include <ssoa/registry/registrymessage.h>
 
 namespace ssoa
 {

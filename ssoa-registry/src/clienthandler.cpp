@@ -4,10 +4,10 @@
 
 #include "clienthandler.h"
 
-#include <logger.h>
-#include <registry/registryerrormessage.h>
-#include <registry/registryregistrationresponse.h>
-#include <registry/registryserviceresponse.h>
+#include <ssoa/logger.h>
+#include <ssoa/registry/registryerrormessage.h>
+#include <ssoa/registry/registryregistrationresponse.h>
+#include <ssoa/registry/registryserviceresponse.h>
 
 #include <vector>
 #include <fstream>

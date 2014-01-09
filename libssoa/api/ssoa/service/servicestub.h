@@ -5,8 +5,8 @@
 #ifndef _SERVICESTUB_H_
 #define _SERVICESTUB_H_
 
-#include <service/service.h>
-#include <service/response.h>
+#include <ssoa/service/service.h>
+#include <ssoa/service/response.h>
 
 #include <string>
 

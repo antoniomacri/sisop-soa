@@ -2,7 +2,7 @@
  * registryserviceresponse.cpp
  */
 
-#include <registry/registryserviceresponse.h>
+#include <ssoa/registry/registryserviceresponse.h>
 
 #include <stdexcept>
 

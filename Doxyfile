@@ -655,7 +655,7 @@ WARN_LOGFILE           =
 # with spaces.
 
 INPUT                  = \
-  libssoa/api libssoa/api/registry libssoa/api/service \
+  libssoa/api/ssoa libssoa/api/ssoa/registry libssoa/api/ssoa/service \
   libssoa/src libssoa/src/registry libssoa/src/service \
   ssoa-registry/include ssoa-registry/src \
   ssoa-storageprovider/api ssoa-storageprovider/include ssoa-storageprovider/src \

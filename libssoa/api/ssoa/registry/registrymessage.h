@@ -5,7 +5,7 @@
 #ifndef _REGISTRYMESSAGE_H_
 #define _REGISTRYMESSAGE_H_
 
-#include <factorybase.h>
+#include <ssoa/factorybase.h>
 
 // Forward-declare YAML::Node
 namespace YAML

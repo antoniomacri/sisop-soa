@@ -5,7 +5,7 @@
 #ifndef _SERVICEARGUMENT_H_
 #define _SERVICEARGUMENT_H_
 
-#include <factorybase.h>
+#include <ssoa/factorybase.h>
 
 #include <map>
 #include <string>

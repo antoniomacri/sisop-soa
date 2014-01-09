@@ -5,7 +5,7 @@
 #ifndef _STOREIMAGESERVICE_H_
 #define _STOREIMAGESERVICE_H_
 
-#include <service/servicestub.h>
+#include <ssoa/service/servicestub.h>
 
 namespace storageprovider
 {

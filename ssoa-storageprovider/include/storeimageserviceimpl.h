@@ -5,8 +5,8 @@
 #ifndef _STOREIMAGESERVICEIMPL_H_
 #define _STOREIMAGESERVICEIMPL_H_
 
-#include <service/servicesignature.h>
-#include <service/serviceskeleton.h>
+#include <ssoa/service/servicesignature.h>
+#include <ssoa/service/serviceskeleton.h>
 
 namespace storageprovider
 {

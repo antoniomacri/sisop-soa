@@ -5,8 +5,8 @@
 #ifndef _RESPONSE_H_
 #define _RESPONSE_H_
 
-#include <service/servicesignature.h>
-#include <service/serviceargument.h>
+#include <ssoa/service/servicesignature.h>
+#include <ssoa/service/serviceargument.h>
 
 #include <deque>
 #include <stdexcept>

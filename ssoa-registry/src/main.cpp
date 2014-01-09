@@ -11,7 +11,7 @@
 #include <boost/program_options/parsers.hpp>
 #include <boost/program_options/variables_map.hpp>
 
-#include <logger.h>
+#include <ssoa/logger.h>
 
 using namespace std;
 using namespace ssoa;

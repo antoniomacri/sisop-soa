@@ -2,7 +2,7 @@
  * servicestub.cpp
  */
 
-#include <service/servicestub.h>
+#include <ssoa/service/servicestub.h>
 
 #include <boost/asio/connect.hpp>
 #include <boost/asio/ip/tcp.hpp>

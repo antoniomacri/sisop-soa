@@ -5,7 +5,7 @@
 #ifndef _REGISTRYIMPL_H_
 #define _REGISTRYIMPL_H_
 
-#include <service/servicesignature.h>
+#include <ssoa/service/servicesignature.h>
 
 #include <list>
 #include <map>

@@ -2,9 +2,9 @@
  * serviceskeleton.cpp
  */
 
-#include <service/serviceskeleton.h>
-#include <logger.h>
-#include <registry/registry.h>
+#include <ssoa/service/serviceskeleton.h>
+#include <ssoa/logger.h>
+#include <ssoa/registry/registry.h>
 
 #include <memory>
 #include <sstream>

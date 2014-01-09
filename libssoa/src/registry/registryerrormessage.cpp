@@ -2,7 +2,7 @@
  * registryerrormessage.cpp
  */
 
-#include <registry/registryerrormessage.h>
+#include <ssoa/registry/registryerrormessage.h>
 
 #include <stdexcept>
 

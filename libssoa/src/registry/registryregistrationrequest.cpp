@@ -2,7 +2,7 @@
  * registryregistrationrequest.cpp
  */
 
-#include <registry/registryregistrationrequest.h>
+#include <ssoa/registry/registryregistrationrequest.h>
 
 #include <stdexcept>
 

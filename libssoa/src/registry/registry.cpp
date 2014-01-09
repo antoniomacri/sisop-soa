@@ -1,9 +1,9 @@
-#include <registry/registry.h>
-#include <registry/registryregistrationrequest.h>
-#include <registry/registryregistrationresponse.h>
-#include <registry/registryservicerequest.h>
-#include <registry/registryserviceresponse.h>
-#include <service/servicestub.h>
+#include <ssoa/registry/registry.h>
+#include <ssoa/registry/registryregistrationrequest.h>
+#include <ssoa/registry/registryregistrationresponse.h>
+#include <ssoa/registry/registryservicerequest.h>
+#include <ssoa/registry/registryserviceresponse.h>
+#include <ssoa/service/servicestub.h>
 
 #include <stdexcept>
 #include <stdlib.h>

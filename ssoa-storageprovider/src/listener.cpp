@@ -3,7 +3,7 @@
  */
 
 #include <listener.h>
-#include <service/serviceskeleton.h>
+#include <ssoa/service/serviceskeleton.h>
 
 #include <boost/bind.hpp>
 #include <boost/thread/thread.hpp>

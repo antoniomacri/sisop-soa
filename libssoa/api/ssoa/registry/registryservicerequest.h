@@ -5,8 +5,8 @@
 #ifndef _REGISTRYSERVICEREQUEST_H_
 #define _REGISTRYSERVICEREQUEST_H_
 
-#include <registry/registrymessage.h>
-#include <service/servicesignature.h>
+#include <ssoa/registry/registrymessage.h>
+#include <ssoa/service/servicesignature.h>
 
 namespace ssoa
 {

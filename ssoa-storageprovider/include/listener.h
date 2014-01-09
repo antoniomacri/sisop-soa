@@ -5,7 +5,7 @@
 #ifndef _LISTENER_H_
 #define _LISTENER_H_
 
-#include <service/service.h>
+#include <ssoa/service/service.h>
 
 #include <string>
 

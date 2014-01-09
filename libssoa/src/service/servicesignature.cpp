@@ -2,7 +2,7 @@
  * servicesignature.cpp
  */
 
-#include <service/servicesignature.h>
+#include <ssoa/service/servicesignature.h>
 
 #include <boost/regex.hpp>
 

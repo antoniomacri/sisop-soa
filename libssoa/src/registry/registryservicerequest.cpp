@@ -2,7 +2,7 @@
  * registryservicerequest.cpp
  */
 
-#include <registry/registryservicerequest.h>
+#include <ssoa/registry/registryservicerequest.h>
 
 #include <sstream>
 

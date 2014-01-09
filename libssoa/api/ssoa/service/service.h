@@ -5,8 +5,8 @@
 #ifndef _SERVICE_H_
 #define _SERVICE_H_
 
-#include <service/serviceargument.h>
-#include <service/servicesignature.h>
+#include <ssoa/service/serviceargument.h>
+#include <ssoa/service/servicesignature.h>
 
 #include <deque>
 #include <memory>
@@ -37,7 +37,7 @@ namespace ssoa
         template<class ServArg>
         void pushArgument(const ServArg *arg)
         {
-            if (signature.getOutputParams()[arguments.size()] != ServArg::className()) {
+            if (signature.getOutputParams()[arguments.size()] != ServArg::type()) {
                 std::string expected = signature.getOutputParams()[arguments.size()];
                 throw std::logic_error("Invalid argument (must be '" + expected + "').");
             }

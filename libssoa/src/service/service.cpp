@@ -2,7 +2,7 @@
  * service.cpp
  */
 
-#include <service/service.h>
+#include <ssoa/service/service.h>
 
 #include <boost/asio/buffer.hpp>
 #include <yaml-cpp/yaml.h>

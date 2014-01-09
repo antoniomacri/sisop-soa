@@ -2,7 +2,7 @@
  * serviceargument.cpp
  */
 
-#include <service/serviceargument.h>
+#include <ssoa/service/serviceargument.h>
 
 static ssoa::ServiceArgument::installer<ssoa::ServiceIntArgument> installInt;
 static ssoa::ServiceArgument::installer<ssoa::ServiceDoubleArgument> installDouble;

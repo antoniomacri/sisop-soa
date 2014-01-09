@@ -5,10 +5,10 @@
 #ifndef _SERVICESKELETON_H_
 #define _SERVICESKELETON_H_
 
-#include <service/service.h>
-#include <service/response.h>
-#include <factorybase.h>
-#include <logger.h>
+#include <ssoa/service/service.h>
+#include <ssoa/service/response.h>
+#include <ssoa/factorybase.h>
+#include <ssoa/logger.h>
 
 #include <boost/asio/ip/tcp.hpp>
 

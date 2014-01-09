@@ -38,17 +38,23 @@ BOOST_AUTO_TEST_CASE( constructors_test )
     BOOST_CHECK(!ServiceSignature("RotateImage(,)").isValid());
     BOOST_CHECK(!ServiceSignature("Rotate Image(in int, in buffer)").isValid());
     BOOST_CHECK(!ServiceSignature("RotateImage(int int, in buffer)").isValid());
-    BOOST_CHECK(!ServiceSignature("RotateImage(in intt, in buffer)").isValid());
     BOOST_CHECK(!ServiceSignature("RotateImage(in int in buffer)").isValid());
     BOOST_CHECK(!ServiceSignature("RotateImage(in int, int buffer)").isValid());
-    BOOST_CHECK(!ServiceSignature("RotateImage(in int, in buffers)").isValid());
+}
 
-    ServiceSignature::Type none[] = { ServiceSignature::TYPE_INVALID };
-    ServiceSignature::Type a_string[] = { ServiceSignature::TYPE_STRING, ServiceSignature::TYPE_INVALID };
-    ServiceSignature::Type a_buffer[] = { ServiceSignature::TYPE_BUFFER, ServiceSignature::TYPE_INVALID };
-    BOOST_CHECK(!ServiceSignature("RotateImage", none, none).isValid());
-    BOOST_CHECK(ServiceSignature("RotateImage", a_buffer, none) == ServiceSignature("RotateImage(in buffer)"));
-    BOOST_CHECK(ServiceSignature("RotateImage", none, a_string) == ServiceSignature("RotateImage(out string)"));
-    BOOST_CHECK(ServiceSignature("RotateImage", a_string, a_buffer)
-        == ServiceSignature("RotateImage(in string, out buffer)"));
+BOOST_AUTO_TEST_CASE( params_test )
+{
+    ServiceSignature sigc("RotateImage(in intt, in buffer)");
+    BOOST_CHECK(sigc.isValid());
+    BOOST_CHECK_EQUAL(sigc.getInputParams().size(), 2);
+    BOOST_CHECK_EQUAL(sigc.getInputParams()[0], "intt");
+    BOOST_CHECK_EQUAL(sigc.getInputParams()[1], "buffer");
+    BOOST_CHECK_EQUAL(sigc.getOutputParams().size(), 0);
+
+    ServiceSignature sigd("RotateImage(in int , out  buffers )");
+    BOOST_CHECK(sigd.isValid());
+    BOOST_CHECK_EQUAL(sigd.getInputParams().size(), 1);
+    BOOST_CHECK_EQUAL(sigd.getInputParams()[0], "int");
+    BOOST_CHECK_EQUAL(sigd.getOutputParams().size(), 1);
+    BOOST_CHECK_EQUAL(sigd.getOutputParams()[0], "buffers");
 }

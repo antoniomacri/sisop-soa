@@ -37,14 +37,6 @@ namespace ssoa
             return is_valid;
         }
 
-        bool operator==(const ServiceSignature & that) const {
-            return this->signature == that.signature;
-        }
-
-        bool operator<(const ServiceSignature & that) const {
-            return this->signature < that.signature;
-        }
-
         operator std::string() const {
             return signature;
         }
@@ -60,7 +52,23 @@ namespace ssoa
             name("*"), signature("*"), is_valid(false)
         {
         }
+
+        friend bool operator==(const ServiceSignature& a, const ServiceSignature& b);
+        friend bool operator!=(const ServiceSignature& a, const ServiceSignature& b);
+        friend bool operator<(const ServiceSignature& a, const ServiceSignature& b);
     };
+
+    inline bool operator==(const ServiceSignature& a, const ServiceSignature& b) {
+        return a.signature == b.signature;
+    }
+
+    inline bool operator!=(const ServiceSignature& a, const ServiceSignature& b) {
+        return a.signature != b.signature;
+    }
+
+    inline bool operator<(const ServiceSignature& a, const ServiceSignature& b) {
+        return a.signature < b.signature;
+    }
 }
 
 #endif

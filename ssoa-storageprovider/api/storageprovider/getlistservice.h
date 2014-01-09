@@ -21,8 +21,13 @@ namespace storageprovider
         /// @param host The remote host of the service provider.
         /// @param port The remote port on which the service is provided.
         GetListService(std::string host, std::string port) :
-            ssoa::ServiceStub(ssoa::ServiceSignature("GetList(out buffer)"), host, port)
+            ssoa::ServiceStub(ssoa::ServiceSignature(serviceSignature()), host, port)
         {
+        }
+
+        /// Gets the signature of this type of service.
+        static const char * serviceSignature() {
+            return "GetList(out buffer)";
         }
 
         /// Gets a string representing the status of the operation.

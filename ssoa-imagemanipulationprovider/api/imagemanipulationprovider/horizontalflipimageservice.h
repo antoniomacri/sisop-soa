@@ -21,8 +21,13 @@ namespace imagemanipulationprovider
         /// @param host The remote host of the service provider.
         /// @param port The remote port on which the service is provided.
         HorizontalFlipImageService(std::string host, std::string port) :
-            ssoa::ServiceStub(ssoa::ServiceSignature("HorizontalFlipImage(in buffer, out buffer)"), host, port)
+            ssoa::ServiceStub(ssoa::ServiceSignature(serviceSignature()), host, port)
         {
+        }
+
+        /// Gets the signature of this type of service.
+        static const char * serviceSignature() {
+            return "HorizontalFlipImage(in buffer, out buffer)";
         }
 
         /// Gets a string representing the status of the operation.

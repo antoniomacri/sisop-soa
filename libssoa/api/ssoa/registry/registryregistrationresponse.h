@@ -13,11 +13,19 @@ namespace ssoa
     class RegistryRegistrationResponse: public RegistryMessage
     {
     public:
+        /// Constructs an unsuccessful RegistryRegistrationResponse.
+        ///
+        /// @param status A string containing a status message.
+        RegistryRegistrationResponse(std::string status) :
+            successful(false), status(std::move(status))
+        {
+        }
+
         /// Constructs a RegistryRegistrationResponse.
         ///
         /// @param successful A boolean indicating whether the registration is successful.
         /// @param status A string containing a status message.
-        RegistryRegistrationResponse(bool successful = true, std::string status = "") :
+        RegistryRegistrationResponse(bool successful, std::string status) :
             successful(successful), status(std::move(status))
         {
         }

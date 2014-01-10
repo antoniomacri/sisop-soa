@@ -125,6 +125,30 @@ DISTCLEAN += $(REGISTRY) $(BIN)
 
 
 ###
+### ssoa-registry-test
+###
+REGISTRYTEST := $(BIN)/ssoa-registry-test
+.PHONY: test-registry
+test-registry: $(REGISTRYTEST)
+
+REGISTRYTEST_INCLUDES := ssoa-registry-test/src libssoa/api
+REGISTRYTEST_OBJECTS := $(call GETOBJECTS,ssoa-registry-test)
+REGISTRYTEST_DEPS := $(REGISTRYTEST_OBJECTS:.o=.d)
+REGISTRYTEST_LIBS := ssoa pthread boost_regex boost_system boost_unit_test_framework yaml-cpp
+
+$(REGISTRYTEST): $(LIBSSOA) $(REGISTRY) $(REGISTRYTEST_OBJECTS)
+	$(call LINK,$(REGISTRYTEST_OBJECTS),$(REGISTRYTEST_LIBS))
+
+ssoa-registry-test/obj/%.o: ssoa-registry-test/src/%.cpp
+	$(call COMPILE,$(REGISTRYTEST_INCLUDES))
+
+-include $(REGISTRYTEST_DEPS)
+
+CLEAN += $(REGISTRYTEST_OBJECTS) $(REGISTRYTEST_DEPS) ssoa-registry-test/obj
+DISTCLEAN += $(REGISTRYTEST) $(BIN)
+
+
+###
 ### ssoa-storageprovider
 ###
 STORAGEPROVIDER := $(BIN)/ssoa-storageprovider

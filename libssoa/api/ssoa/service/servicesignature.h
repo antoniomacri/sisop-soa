@@ -24,6 +24,11 @@ namespace ssoa
         {
         }
 
+        ServiceSignature(const char *signature) :
+            ServiceSignature(std::string(signature))
+        {
+        }
+
         ServiceSignature(const std::string & signature);
 
         const std::string & getName() const {

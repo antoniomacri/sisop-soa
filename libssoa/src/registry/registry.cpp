@@ -1,9 +1,13 @@
+/**
+ * registry.cpp
+ */
+
 #include <ssoa/registry/registry.h>
+#include <ssoa/registry/registryerrormessage.h>
 #include <ssoa/registry/registryregistrationrequest.h>
 #include <ssoa/registry/registryregistrationresponse.h>
 #include <ssoa/registry/registryservicerequest.h>
 #include <ssoa/registry/registryserviceresponse.h>
-#include <ssoa/service/servicestub.h>
 
 #include <stdexcept>
 #include <stdlib.h>
@@ -15,12 +19,14 @@
 #include <boost/asio/streambuf.hpp>
 #include <boost/asio/write.hpp>
 
+using std::string;
+
 namespace ssoa
 {
     string Registry::host = "";
     string Registry::port = "";
 
-    RegistryMessage * Registry::submit(const RegistryMessage & request)
+    RegistryMessage * Registry::submit(const RegistryMessage& request)
     {
         if (host.empty() || port.empty()) {
             throw std::logic_error("Registry not initialized!");
@@ -42,39 +48,39 @@ namespace ssoa
         return RegistryMessage::fromYaml(s);
     }
 
-    bool Registry::registerService(const ServiceSignature & signature, const string & host, const string & port)
+    void Registry::registerService(const ServiceSignature& signature, string host, string port, bool deregister)
     {
-        RegistryRegistrationRequest request(signature, host, port);
-        RegistryRegistrationResponse * response = dynamic_cast<RegistryRegistrationResponse*>(submit(request));
-        bool successful = response != NULL && response->isSuccessful();
-        delete response;
-        return successful;
-    }
+        RegistryRegistrationRequest request(signature, host, port, deregister);
+        std::unique_ptr<RegistryMessage> received(submit(request));
 
-    bool Registry::deregisterService(const ServiceSignature & signature, const string & host, const string & port)
-    {
-        RegistryRegistrationRequest request(signature, host, port, true);
-        RegistryRegistrationResponse * response = dynamic_cast<RegistryRegistrationResponse*>(submit(request));
-        bool successful = response != NULL && response->isSuccessful();
-        delete response;
-        return successful;
-    }
-
-    bool Registry::deregisterProvider(const string & host)
-    {
-        RegistryRegistrationRequest request(ServiceSignature::any, host, 0);
-        RegistryRegistrationResponse * response = dynamic_cast<RegistryRegistrationResponse*>(submit(request));
-        bool successful = response != NULL && response->isSuccessful();
-        delete response;
-        return successful;
-    }
-
-    Service* Registry::getService(const ServiceSignature & signature)
-    {
-        RegistryServiceResponse * response = (RegistryServiceResponse*)submit(RegistryServiceRequest(signature));
-        if (response != NULL && response->isSuccessful()) {
-            return new ServiceStub(signature, response->getHost(), response->getPort());
+        RegistryRegistrationResponse *response = dynamic_cast<RegistryRegistrationResponse*>(received.get());
+        if (response != NULL) {
+            if (response->isSuccessful()) {
+                return;
+            }
+            throw std::runtime_error(response->getStatus());
         }
-        return NULL;
+        RegistryErrorMessage *error = dynamic_cast<RegistryErrorMessage*>(received.get());
+        if (error != NULL) {
+            throw std::runtime_error(error->getStatus());
+        }
+        throw std::runtime_error("Received an invalid response from registry.");
+    }
+
+    std::pair<string, string> Registry::getProvider(string signature)
+    {
+        std::unique_ptr<RegistryMessage> received(submit(RegistryServiceRequest(signature)));
+        RegistryServiceResponse * response = dynamic_cast<RegistryServiceResponse*>(received.get());
+        if (response != NULL) {
+            if (response->isSuccessful()) {
+                return make_pair(response->getHost(), response->getPort());
+            }
+            throw std::runtime_error(response->getStatus());
+        }
+        RegistryErrorMessage *error = dynamic_cast<RegistryErrorMessage*>(received.get());
+        if (error != NULL) {
+            throw std::runtime_error(error->getStatus());
+        }
+        throw std::runtime_error("Received an invalid response from registry.");
     }
 }

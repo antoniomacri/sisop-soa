@@ -19,6 +19,11 @@ namespace ssoa
     public:
         static ServiceSignature any;
 
+        ServiceSignature() :
+            name("*"), signature("*"), is_valid(false)
+        {
+        }
+
         ServiceSignature(const std::string & signature);
 
         const std::string & getName() const {
@@ -47,11 +52,6 @@ namespace ssoa
         std::vector<std::string> inputParams;
         std::vector<std::string> outputParams;
         bool is_valid;
-
-        ServiceSignature() :
-            name("*"), signature("*"), is_valid(false)
-        {
-        }
 
         friend bool operator==(const ServiceSignature& a, const ServiceSignature& b);
         friend bool operator!=(const ServiceSignature& a, const ServiceSignature& b);

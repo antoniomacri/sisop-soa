@@ -62,7 +62,7 @@ namespace ssoa
     {
         // We can reset a shared_ptr to a ClientHandler since it registers its callbacks by using a
         // shared_from_this() pointer.
-        clientHandler.reset(new ClientHandler(ioService));
+        clientHandler.reset(new ClientHandler(ioService, registry));
 
         // Registers for an asynchronous accept
         acceptor.async_accept(clientHandler->getSocket(),

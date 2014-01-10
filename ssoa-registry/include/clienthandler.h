@@ -22,7 +22,7 @@ namespace ssoa
     {
     public:
         /// Constructs a ClientHandler with the given io_service.
-        explicit ClientHandler(boost::asio::io_service& io_service);
+        explicit ClientHandler(boost::asio::io_service& io_service, RegistryImpl& registry);
 
         /// Gets the socket associated with the connection.
         boost::asio::ip::tcp::socket& getSocket();
@@ -43,10 +43,11 @@ namespace ssoa
         std::string generateRegistrationResponse(RegistryRegistrationRequest *request);
         std::string generateServiceResponse(RegistryServiceRequest *request);
 
-        RegistryImpl registry;
-
         /// Socket for the connection.
         boost::asio::ip::tcp::socket socket;
+
+        /// A reference to the actual registry implementation.
+        RegistryImpl& registry;
 
         /// Buffer for incoming data.
         boost::asio::streambuf buffer;

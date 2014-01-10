@@ -55,6 +55,9 @@ namespace ssoa
 
         /// The next connection to be accepted.
         std::shared_ptr<ClientHandler> clientHandler;
+
+        /// An instance of the actual registry implementation.
+        RegistryImpl registry;
     };
 }
 

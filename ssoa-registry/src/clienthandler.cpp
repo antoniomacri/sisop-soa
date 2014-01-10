@@ -16,17 +16,19 @@
 #include <boost/asio/read_until.hpp>
 #include <boost/asio/write.hpp>
 #include <boost/bind.hpp>
+#include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
 #include <yaml-cpp/yaml.h>
 
 using std::string;
+using boost::format;
 using namespace boost::asio;
 using namespace boost::asio::ip;
 
 namespace ssoa
 {
-    ClientHandler::ClientHandler(io_service& io_service) :
-        socket(io_service)
+    ClientHandler::ClientHandler(io_service& io_service, RegistryImpl& registry) :
+        socket(io_service), registry(registry)
     {
     }
 
@@ -49,7 +51,6 @@ namespace ssoa
             const char * begin = buffer_cast<const char*>(buffer.data());
             const char * end = begin + bytes_transferred - 1; // -1 to remove '\0'
             string text = std::string(begin, end);
-            std::cout << "Request:\n====\n" << text << "\n===" << std::endl;
 
             try {
                 std::unique_ptr<RegistryMessage> req(RegistryMessage::fromYaml(text));
@@ -57,15 +58,15 @@ namespace ssoa
             }
             catch (std::runtime_error& e) {
                 // An error dependent on the request (e.g., malformed YAML).
+                Logger::debug() << format("Caught runtime_error: %1%.") % e.what() << std::endl;
                 response = RegistryErrorMessage(e.what()).toYaml();
             }
             catch (std::exception& e) {
                 // This should be an internal server error: log it.
-                Logger::error() << e.what() << std::endl;
+                Logger::error() << format("Caught exception: %1%.") % e.what() << std::endl;
                 response = RegistryErrorMessage(e.what()).toYaml();
             }
 
-            std::cout << "Reply:\n====\n" << response << "\n===" << std::endl;
             // After calling c_str(), the string is guaranteed to be null-terminated
             async_write(socket, boost::asio::buffer(response.c_str(), response.size() + 1),
                         boost::bind(&ClientHandler::handleWrite, shared_from_this(),
@@ -111,44 +112,45 @@ namespace ssoa
 
     string ClientHandler::generateRegistrationResponse(RegistryRegistrationRequest *request)
     {
-        std::cout << "handling registration request" << std::endl;
         string service = request->getService();
         string host = request->getHost();
         string port = request->getPort();
         bool deregister = request->getDeregister();
         try {
-            bool result;
-            if (deregister)
-                result = registry.deregisterService(ServiceSignature(service), host, port);
-            else
-                result = registry.registerService(ServiceSignature(service), host, port);
-            return RegistryRegistrationResponse(result).toYaml();
+            bool done;
+            if (deregister) {
+                done = registry.deregisterService(ServiceSignature(service), host, port);
+            }
+            else {
+                done = registry.registerService(ServiceSignature(service), host, port);
+            }
+            format fmt("%1% <%2%, %3%, %4%> -- <%5%, %6%>");
+            Logger::debug() << fmt % (deregister ? "-" : "+") % service % host % port % done % "OK" << std::endl;
+            return RegistryRegistrationResponse(true, "OK").toYaml();
         }
-        catch (std::exception& e) {
-            return RegistryErrorMessage(e.what()).toYaml();
+        catch (const std::exception& e) {
+            format fmt("%1% <%2%, %3%, %4%> -- %5%");
+            Logger::debug() << fmt % (deregister ? "-" : "+") % service % host % port % e.what() << std::endl;
+            return RegistryRegistrationResponse(e.what()).toYaml();
         }
     }
 
     string ClientHandler::generateServiceResponse(RegistryServiceRequest *request)
     {
-        std::cout << "handling service request" << std::endl;
         string service = request->getService();
-        std::cout << "service: " << service << std::endl;
         try {
             string host, port;
             if (registry.lookupService(ServiceSignature(service), host, port)) {
-                std::cout << "Found!" << std::endl;
-                std::cout << "  host: " << host << std::endl;
-                std::cout << "  port: " << port << std::endl;
+                Logger::debug() << format("* %1% -- <%2%, %3%>") % service % host % port << std::endl;
                 return RegistryServiceResponse(host, port).toYaml();
             }
             else {
-                std::cout << "Not found!" << std::endl;
+                Logger::debug() << format("* %1% -- Not found.") % service << std::endl;
                 return RegistryServiceResponse("No provider available for the requested service.").toYaml();
             }
         }
-        catch (std::exception& e) {
-            return RegistryErrorMessage(e.what()).toYaml();
+        catch (const std::exception& e) {
+            return RegistryServiceResponse(e.what()).toYaml();
         }
     }
 }

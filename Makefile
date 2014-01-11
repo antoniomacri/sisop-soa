@@ -96,6 +96,7 @@ libssoa-test/obj/%.o: libssoa-test/src/%.cpp
 
 -include $(LIBSSOATEST_DEPS)
 
+TEST += $(LIBSSOATEST)
 CLEAN += $(LIBSSOATEST_OBJECTS) $(LIBSSOATEST_DEPS) libssoa-test/obj
 DISTCLEAN += $(LIBSSOATEST) $(BIN)
 
@@ -144,6 +145,7 @@ ssoa-registry-test/obj/%.o: ssoa-registry-test/src/%.cpp
 
 -include $(REGISTRYTEST_DEPS)
 
+TEST += $(REGISTRYTEST)
 CLEAN += $(REGISTRYTEST_OBJECTS) $(REGISTRYTEST_DEPS) ssoa-registry-test/obj
 DISTCLEAN += $(REGISTRYTEST) $(BIN)
 
@@ -194,6 +196,13 @@ ssoa-imagemanipulationprovider/obj/%.o: ssoa-imagemanipulationprovider/src/%.cpp
 
 CLEAN += $(IMAGEMANIPULATIONPROVIDER_OBJECTS) $(IMAGEMANIPULATIONPROVIDER_DEPS) ssoa-imagemanipulationprovider/obj
 DISTCLEAN += $(IMAGEMANIPULATIONPROVIDER) $(BIN)
+
+
+###
+### test
+###
+.PHONY: test
+test: $(TEST)
 
 
 ###

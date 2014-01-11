@@ -168,7 +168,7 @@ namespace ssoa
         /// @throws std::runtime_error @c size is not equal to @c sizeof(double).
         static ServiceArgument* prepare(size_t size) {
             check_argument_size(size, sizeof(value));
-            return new ServiceIntArgument(0.0);
+            return new ServiceDoubleArgument(0.0);
         }
 
         /// Gets the identifier of this type of argument (used for deserialization).

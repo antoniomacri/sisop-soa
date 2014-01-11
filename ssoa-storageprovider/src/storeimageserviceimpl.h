@@ -29,9 +29,7 @@ namespace storageprovider
             return "StoreImage(in string, in buffer)";
         }
 
-        virtual ssoa::Response * invoke() {
-            return NULL;
-        }
+        virtual ssoa::Response * invoke();
     };
 }
 

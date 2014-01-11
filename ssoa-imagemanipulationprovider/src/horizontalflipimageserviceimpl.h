@@ -29,9 +29,7 @@ namespace imagemanipulationprovider
             return "HorizontalFlipImage(in buffer, out buffer)";
         }
 
-        virtual ssoa::Response * invoke() {
-            return NULL;
-        }
+        virtual ssoa::Response * invoke();
     };
 }
 

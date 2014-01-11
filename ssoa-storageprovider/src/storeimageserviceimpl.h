@@ -29,6 +29,11 @@ namespace storageprovider
             return "StoreImage(in string, in buffer)";
         }
 
+        /// Installs the creation method.
+        static void install() {
+            factory().install(serviceSignature(), create);
+        }
+
         virtual ssoa::Response * invoke();
     };
 }

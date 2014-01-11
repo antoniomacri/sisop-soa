@@ -29,6 +29,11 @@ namespace imagemanipulationprovider
             return "RotateImage(in int, in buffer, out buffer)";
         }
 
+        /// Installs the creation method.
+        static void install() {
+            factory().install(serviceSignature(), create);
+        }
+
         virtual ssoa::Response * invoke();
     };
 }

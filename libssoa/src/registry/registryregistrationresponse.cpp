@@ -35,5 +35,3 @@ namespace ssoa
         return e.c_str();
     }
 }
-
-static ssoa::RegistryMessage::installer<ssoa::RegistryRegistrationResponse> install;

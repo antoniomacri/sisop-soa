@@ -5,6 +5,8 @@
 #ifndef _FACTORYBASE_H_
 #define _FACTORYBASE_H_
 
+#include <ssoa/logger.h>
+
 #include <map>
 #include <string>
 #include <utility>
@@ -15,11 +17,12 @@ namespace ssoa
     template<class T, typename ... Args>
     class FactoryBase
     {
-    private:
-        FactoryBase() {
+    public:
+        FactoryBase(std::string hierarchyName) :
+            hierarchyName(hierarchyName)
+        {
         }
 
-    public:
         /// Represents a method which generates an instance of class @c T from the given @c args.
         ///
         /// This method should not return @c NULL. If the message cannot be constructed,
@@ -29,7 +32,7 @@ namespace ssoa
         /// Checks if a handler for the specified class is installed.
         ///
         /// @param className A null-terminated string identifying the class.
-        static bool contains(const std::string className)
+        bool contains(const std::string className)
         {
             return mappings().find(className) != mappings().end();
         }
@@ -42,14 +45,17 @@ namespace ssoa
         /// @throws std::logic_error A handler is already registered for the given class.
         ///
         /// @see CreatorMethod
-        static void install(const std::string className, CreatorMethod creator)
+        void install(const std::string className, CreatorMethod creator)
         {
             auto iter = mappings().find(className);
             if (iter != mappings().end()) {
-                throw std::logic_error(T::hierarchyName() +
+                throw std::logic_error(hierarchyName +
                                        std::string(": Duplicate initialization for identifier \"")
                                        + className + "\".");
             }
+            std::string s("FactoryBase: in hierarchy '" + hierarchyName +
+                          "' added factory method for '" + className + "'.");
+            Logger::debug() << s << std::endl;
             mappings()[className] = creator;
         }
 
@@ -62,11 +68,11 @@ namespace ssoa
         ///         The return value is never @c NULL.
         ///
         /// @throws std::runtime_error No handler is installed for the specified class.
-        static T * create(const std::string className, Args ... args)
+        T * create(const std::string className, Args ... args)
         {
             auto iter = mappings().find(className);
             if (iter == mappings().end()) {
-                throw std::runtime_error(T::hierarchyName() +
+                throw std::runtime_error(hierarchyName +
                                          std::string(": Unknown message type: \"")
                                          + className + "\".");
             }
@@ -74,11 +80,14 @@ namespace ssoa
         }
 
     private:
+        std::string hierarchyName;
+
         /// Contains mappings between a class and its "named constructor"
-        static std::map<std::string, CreatorMethod>& mappings()
+        std::map<std::string, CreatorMethod>& mappings()
         {
             // Construct-on-first-use to avoid the static initialization order problem
             static std::map<std::string, CreatorMethod> * m = new std::map<std::string, CreatorMethod>();
+            // Using static: many instances with equal template arguments will share the same m;
             return *m;
         }
     };

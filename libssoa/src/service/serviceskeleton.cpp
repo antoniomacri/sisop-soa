@@ -102,7 +102,7 @@ namespace ssoa
             signature = node["service"].to<string>();
 
             // Validate the signature by checking if the provider actually supports the service
-            if (!ServiceSkeleton::Factory::contains(signature.getName())) {
+            if (!ServiceSkeleton::factory().contains(signature.getName())) {
                 sendResponse(new Response(signature, false, "Service not available."));
                 // Avoid reading all arguments when the service is unavailable.
                 // With each connection, a single service request is serviced, so the we
@@ -141,7 +141,7 @@ namespace ssoa
             return;
         }
 
-        ServiceSkeleton *impl = ServiceSkeleton::Factory::create(signature, std::move(arguments));
+        ServiceSkeleton *impl = ServiceSkeleton::factory().create(signature, std::move(arguments));
         sendResponse(impl->invoke());
     }
 }

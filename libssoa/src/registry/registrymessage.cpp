@@ -23,6 +23,6 @@ namespace ssoa
         parser.GetNextDocument(node);
 
         string type = node["type"].to<string>();
-        return Factory::create(type, node);
+        return factory().create(type, node);
     }
 }

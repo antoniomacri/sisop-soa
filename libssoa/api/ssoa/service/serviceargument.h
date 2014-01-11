@@ -31,14 +31,6 @@ namespace ssoa
         }
 
     public:
-        /// Just a shortcut.
-        typedef FactoryBase<ServiceArgument, const size_t> Factory;
-
-        /// Gets an identifier of the ServiceArgument hierarchy (used by FactoryBase).
-        static const char * hierarchyName() {
-            return stringify(ServiceArgument);
-        }
-
         /// Constructs a new argument of the given type allocating a buffer of the size specified.
         ///
         /// The @c size argument is used to allocate an internal buffer of the argument which
@@ -52,38 +44,20 @@ namespace ssoa
         ///
         /// @throws std::runtime_error The type specified is unknown.
         static ServiceArgument* prepare(const std::string type, const size_t size) {
-            return Factory::create(type, size);
+            return factory().create(type, size);
         }
-
-        /// Simplifies the installation of a new handler.
-        ///
-        /// @tparam T The class to register.
-        ///
-        /// The class @p T must meet two requirements:
-        ///   1. must have a method @c type() returning a char array or a string
-        ///      which contains the identifier of the type
-        ///   2. must have a static method @c prepare() with the following signature:
-        ///      @code ServiceArgument* prepare(const size_t size); @endcode
-        ///
-        /// @see prepare()
-        ///      for further information about the behavior of @c prepare().
-        ///
-        /// @par Example
-        /// To install a new handler, it is sufficient to add a line like the following
-        /// at the end of the implementation file (.cpp) of each derived class:
-        /// @code
-        ///   static ssoa::ServiceArgument::installer<ServiceArgumentDerivedClass> install;
-        /// @endcode
-        template<typename T>
-        struct installer
-        {
-            installer() {
-                Factory::install(T::type(), T::prepare);
-            }
-        };
 
     protected:
         ServiceArgument() {
+        }
+
+        /// Just a shortcut.
+        typedef FactoryBase<ServiceArgument, const size_t> Factory;
+
+        /// Returns the factory object.
+        static Factory& factory() {
+            static Factory f(stringify(ServiceArgument));
+            return f;
         }
 
         /// Throws an exception if the size @c current is different from @c expected.
@@ -128,6 +102,11 @@ namespace ssoa
         /// Gets the identifier of this type of argument (used for deserialization).
         static const char * type() {
             return "int";
+        }
+
+        /// Installs the creation method.
+        static void install() {
+            factory().install(type(), prepare);
         }
 
         /// Gets the value of the argument.
@@ -176,6 +155,11 @@ namespace ssoa
             return "double";
         }
 
+        /// Installs the creation method.
+        static void install() {
+            factory().install(type(), prepare);
+        }
+
         /// Gets the value of the argument.
         double getValue() const {
             return value;
@@ -220,6 +204,11 @@ namespace ssoa
         /// Gets the identifier of this type of argument (used for deserialization).
         static const char * type() {
             return "string";
+        }
+
+        /// Installs the creation method.
+        static void install() {
+            factory().install(type(), prepare);
         }
 
         /// Gets the value of the argument.
@@ -269,6 +258,11 @@ namespace ssoa
         /// Gets the identifier of this type of argument (used for deserialization).
         static const char * type() {
             return "buffer";
+        }
+
+        /// Installs the creation method.
+        static void install() {
+            factory().install(type(), prepare);
         }
 
         /// Gets the value of the argument.

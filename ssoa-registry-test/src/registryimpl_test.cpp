@@ -8,6 +8,7 @@
 
 #include <ssoa/logger.h>
 #include <ssoa/registry/registry.h>
+#include <ssoa/utils.h>
 
 #include <signal.h>
 #include <unistd.h>
@@ -18,7 +19,8 @@
     try { a; } \
     catch (const std::exception& e) { std::cerr << "Unexpected exception: " << e.what() << std::endl; }
 
-using namespace ssoa;
+using ssoa::Logger;
+using ssoa::Registry;
 using std::runtime_error;
 using std::string;
 
@@ -54,6 +56,8 @@ bool init_function()
 
 int main(int argc, char* argv[])
 {
+    ssoa::setup();
+
     int result = boost::unit_test::unit_test_main(&init_function, argc, argv);
 
     Logger::info() << "Terminating registry..." << std::endl;

@@ -12,6 +12,7 @@
 #include <boost/program_options/variables_map.hpp>
 
 #include <ssoa/logger.h>
+#include <ssoa/utils.h>
 
 using namespace std;
 using namespace ssoa;
@@ -55,6 +56,9 @@ int main(int argc, char* argv[])
     }
 
     try {
+        // Initialize the library
+        ssoa::setup();
+
         // Initialize and run the server until stopped.
         ssoa::RegistryListener server(address, port, num_threads);
         server.run();

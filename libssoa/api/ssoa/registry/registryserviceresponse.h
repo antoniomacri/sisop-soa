@@ -58,6 +58,11 @@ namespace ssoa
         /// Creates a new instance deserializing it from the specified YAML node.
         static RegistryMessage * fromYaml(const YAML::Node& node);
 
+        /// Installs the creation method.
+        static void install() {
+            factory().install(messageType(), fromYaml);
+        }
+
         virtual std::string toYaml() const;
 
     private:

@@ -13,5 +13,3 @@ namespace imagemanipulationprovider
         return NULL;
     }
 }
-
-static ssoa::ServiceSkeleton::installer<imagemanipulationprovider::RotateImageServiceImpl> install;

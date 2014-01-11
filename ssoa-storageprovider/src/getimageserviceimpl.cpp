@@ -13,5 +13,3 @@ namespace storageprovider
         return NULL;
     }
 }
-
-static ssoa::ServiceSkeleton::installer<storageprovider::GetImageServiceImpl> install;

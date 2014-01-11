@@ -15,21 +15,26 @@
 
 #include <ssoa/logger.h>
 #include <ssoa/registry/registry.h>
+#include <ssoa/utils.h>
 
 using namespace std;
 using namespace imagemanipulationprovider;
 namespace po = boost::program_options;
 
-void registerService(string signature, const string& address, const string& port)
+template<class T>
+void registerService(const string& address, const string& port)
 {
-    Registry::registerService(signature, address, port);
-    Logger::info() << "Registered service \"" << signature << "\" on the registry." << endl;
+    T::install();
+    Logger::info() << "Installed service \"" << T::serviceSignature() << "\"." << endl;
+    Registry::registerService(T::serviceSignature(), address, port);
+    Logger::info() << "Registered service \"" << T::serviceSignature() << "\" on the registry." << endl;
 }
 
-void deregisterService(string signature, const string& address, const string& port)
+template<class T>
+void deregisterService(const string& address, const string& port)
 {
-    Registry::deregisterService(signature, address, port);
-    Logger::info() << "Deregistered service \"" << signature << "\" from the registry." << endl;
+    Registry::deregisterService(T::serviceSignature(), address, port);
+    Logger::info() << "Deregistered service \"" << T::serviceSignature() << "\" from the registry." << endl;
 }
 
 int main(int argc, char* argv[])
@@ -80,12 +85,15 @@ int main(int argc, char* argv[])
         Logger::info() << "Local address not specified: server will listen on the loopback interface." << endl;
     }
 
+    // Initialize the library
+    ssoa::setup();
+
     Registry::initialize(registryAddress, registryPort);
     Logger::info() << "Initialized registry as " << registryAddress << ":" << registryPort << "." << endl;
 
     try {
-        registerService(RotateImageServiceImpl::serviceSignature(), address, port);
-        registerService(HorizontalFlipImageServiceImpl::serviceSignature(), address, port);
+        registerService<RotateImageServiceImpl>(address, port);
+        registerService<HorizontalFlipImageServiceImpl>(address, port);
     }
     catch (const exception& e) {
         Logger::error() << "Caught an exception: " << e.what() << endl;
@@ -106,8 +114,8 @@ int main(int argc, char* argv[])
     }
 
     try {
-        deregisterService(RotateImageServiceImpl::serviceSignature(), address, port);
-        deregisterService(HorizontalFlipImageServiceImpl::serviceSignature(), address, port);
+        deregisterService<RotateImageServiceImpl>(address, port);
+        deregisterService<HorizontalFlipImageServiceImpl>(address, port);
     }
     catch (const exception& e) {
         Logger::error() << "Caught an exception: " << e.what() << endl;

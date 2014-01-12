@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
         registerService<GetListServiceImpl>(address, port);
     }
     catch (const exception& e) {
-        Logger::error() << "Caught an exception: " << e.what() << endl;
+        Logger::error() << "Exception while registering services: " << e.what() << endl;
         return EXIT_FAILURE;
     }
 
@@ -110,7 +110,7 @@ int main(int argc, char* argv[])
         server.run();
     }
     catch (const exception& e) {
-        Logger::error() << "Caught an exception: " << e.what() << endl;
+        Logger::error() << "Exception while running server: " << e.what() << endl;
         // Do not return: deregister services.
         status = EXIT_FAILURE;
     }
@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
         deregisterService<GetListServiceImpl>(address, port);
     }
     catch (const exception& e) {
-        Logger::error() << "Caught an exception: " << e.what() << endl;
+        Logger::error() << "Exception while deregistering services: " << e.what() << endl;
         return EXIT_FAILURE;
     }
 

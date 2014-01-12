@@ -45,16 +45,17 @@ namespace storageprovider
             using namespace ssoa;
 
             unique_ptr<Response> response(ServiceStub::submit());
-            unique_ptr<ServiceBufferArgument> arg(response->popArgument<ServiceBufferArgument>());
-            vector<byte>& buffer = arg->getValue();
+            if (response->isSuccessful()) {
+                unique_ptr<ServiceBufferArgument> arg(response->popArgument<ServiceBufferArgument>());
+                vector<byte>& buffer = arg->getValue();
 
-            char *ptr = (char*)buffer.data();
-            char *end = ptr + buffer.size();
-            do {
-                list.push_back(std::string(ptr));
-                ptr += list.back().size() + 1;
-            } while (ptr < end);
-
+                char *ptr = (char*)buffer.data();
+                char *end = ptr + buffer.size();
+                do {
+                    list.push_back(std::string(ptr));
+                    ptr += list.back().size() + 1;
+                } while (ptr < end);
+            }
             status = response->getStatus();
             return response->isSuccessful();
         }

@@ -47,8 +47,10 @@ namespace storageprovider
             pushArgument(new ServiceStringArgument(name));
 
             unique_ptr<Response> response(ServiceStub::submit());
-            unique_ptr<ServiceBufferArgument> arg(response->popArgument<ServiceBufferArgument>());
-            buffer = std::move(arg->getValue());
+            if (response->isSuccessful()) {
+                unique_ptr<ServiceBufferArgument> arg(response->popArgument<ServiceBufferArgument>());
+                buffer = std::move(arg->getValue());
+            }
             status = response->getStatus();
             return response->isSuccessful();
         }

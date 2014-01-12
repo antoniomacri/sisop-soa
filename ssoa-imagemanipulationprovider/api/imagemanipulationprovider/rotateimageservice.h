@@ -48,8 +48,10 @@ namespace imagemanipulationprovider
             pushArgument(new ServiceBufferArgument(input));
 
             unique_ptr<Response> response(ServiceStub::submit());
-            unique_ptr<ServiceBufferArgument> arg(response->popArgument<ServiceBufferArgument>());
-            output = std::move(arg->getValue());
+            if (response->isSuccessful()) {
+                unique_ptr<ServiceBufferArgument> arg(response->popArgument<ServiceBufferArgument>());
+                output = std::move(arg->getValue());
+            }
             status = response->getStatus();
             return response->isSuccessful();
         }

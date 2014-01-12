@@ -160,7 +160,7 @@ storageprovider: $(STORAGEPROVIDER)
 STORAGEPROVIDER_INCLUDES := ssoa-storageprovider/include ssoa-storageprovider/src libssoa/api
 STORAGEPROVIDER_OBJECTS := $(call GETOBJECTS,ssoa-storageprovider)
 STORAGEPROVIDER_DEPS := $(STORAGEPROVIDER_OBJECTS:.o=.d)
-STORAGEPROVIDER_LIBS := ssoa boost_thread pthread boost_regex boost_system boost_program_options yaml-cpp
+STORAGEPROVIDER_LIBS := ssoa boost_thread pthread boost_regex boost_system boost_program_options boost_filesystem yaml-cpp
 
 $(STORAGEPROVIDER): $(LIBSSOA) $(STORAGEPROVIDER_OBJECTS)
 	$(call LINK,$(STORAGEPROVIDER_OBJECTS),$(STORAGEPROVIDER_LIBS))

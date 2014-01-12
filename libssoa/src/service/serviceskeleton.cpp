@@ -16,6 +16,7 @@
 #include <boost/asio/read.hpp>
 #include <boost/asio/streambuf.hpp>
 #include <boost/bind.hpp>
+#include <boost/format.hpp>
 #include <boost/noncopyable.hpp>
 #include <yaml-cpp/yaml.h>
 
@@ -28,6 +29,8 @@ using boost::asio::buffers_begin;
 using boost::asio::ip::tcp;
 using boost::asio::mutable_buffer;
 using boost::asio::streambuf;
+using boost::format;
+using boost::system::error_code;
 
 namespace ssoa
 {
@@ -38,6 +41,10 @@ namespace ssoa
         ServiceSkeletonSerializationHelper(std::unique_ptr<tcp::socket> socket) :
             socket(std::move(socket)), signature(ServiceSignature::any)
         {
+        }
+
+        void start() {
+            Logger::debug() << format("%1% -- Accepted request.") % socket->remote_endpoint() << std::endl;
             async_read_until(
                 *socket.get(),
                 headerBuffer,
@@ -55,45 +62,34 @@ namespace ssoa
         ServiceSkeleton::arg_deque arguments;
         unique_ptr<Response> response;
 
-        void onHeaderReceived(const boost::system::error_code& e, size_t bytes_transferred);
-        void onPayloadReceived(const boost::system::error_code& e);
+        void onHeaderReceived(const error_code& e, size_t bytes_transferred);
+        void onPayloadReceived(const error_code& e, size_t bytes_transferred);
         void sendResponse(Response * r);
-        void onWriteResponse(const boost::system::error_code& e);
+        void onWriteResponse(const error_code& e);
     };
 
     void ServiceSkeleton::start(std::unique_ptr<tcp::socket> socket)
     {
-        new ServiceSkeletonSerializationHelper(std::move(socket));
+        std::shared_ptr<ServiceSkeletonSerializationHelper> helper(
+            new ServiceSkeletonSerializationHelper(std::move(socket)));
+        helper->start();
     }
 
-    void ServiceSkeletonSerializationHelper::sendResponse(Response * r)
-    {
-        response.reset(r);
-        response->serialize(*socket.get(),
-                            boost::bind(&ServiceSkeletonSerializationHelper::onWriteResponse,
-                                        shared_from_this(),
-                                        boost::asio::placeholders::error));
-    }
-
-    void ServiceSkeletonSerializationHelper::onWriteResponse(const boost::system::error_code& e)
+    void ServiceSkeletonSerializationHelper::onHeaderReceived(const error_code& e, size_t bytes_transferred)
     {
         if (e) {
-            Logger::debug() << e.message() << std::endl;
-        }
-    }
-
-    void ServiceSkeletonSerializationHelper::onHeaderReceived(
-        const boost::system::error_code& e, size_t bytes_transferred)
-    {
-        if (e) {
-            sendResponse(new Response(signature, false, e.message()));
+            string message("Cannot receive header: " + e.message());
+            Logger::debug() << format("%1% -- %2%") % socket->remote_endpoint() % message << std::endl;
+            sendResponse(new Response(signature, false, message));
             return;
         }
+
+        Logger::debug() << format("%1% -- Header received.") % socket->remote_endpoint() << std::endl;
 
         try {
             streambuf::const_buffers_type bufs = headerBuffer.data();
 
-            string header(buffers_begin(bufs), buffers_begin(bufs) + bytes_transferred);
+            string header(buffers_begin(bufs), buffers_begin(bufs) + bytes_transferred - 1);
             istringstream ss(header);
             YAML::Parser parser(ss);
             YAML::Node node;
@@ -102,7 +98,7 @@ namespace ssoa
             signature = node["service"].to<string>();
 
             // Validate the signature by checking if the provider actually supports the service
-            if (!ServiceSkeleton::factory().contains(signature.getName())) {
+            if (!ServiceSkeleton::factory().contains(signature)) {
                 sendResponse(new Response(signature, false, "Service not available."));
                 // Avoid reading all arguments when the service is unavailable.
                 // With each connection, a single service request is serviced, so the we
@@ -110,7 +106,7 @@ namespace ssoa
                 return;
             }
 
-            vector<int> blocks;
+            vector<unsigned int> blocks;
             const YAML::Node& blocksNode = node["blocks"];
             for (unsigned i = 0; i < blocksNode.size(); i++) {
                 int block;
@@ -118,30 +114,82 @@ namespace ssoa
                 blocks.push_back(block);
             }
 
-            auto& params = signature.getInputParams();
+            const auto& params = signature.getInputParams();
+            if (blocks.size() != params.size()) {
+                std::string bs = boost::lexical_cast<std::string>(blocks.size());
+                std::string ps = boost::lexical_cast<std::string>(params.size());
+                throw std::runtime_error(
+                    "Received an invalid request (expected " + ps + " argument blocks, received " + bs + ").");
+            }
+
+            // We must now consume additional data contained in the streambuf beyond the delimiter '\0'
+            // fetched by async_read_until().
+            headerBuffer.consume(bytes_transferred);
+
             for (unsigned i = 0; i < params.size(); i++) {
                 ServiceArgument *arg = ServiceArgument::prepare(params[i], blocks[i]);
-                arguments.push_back(unique_ptr<ServiceArgument>(arg));
-                payloadBuffers.push_back(arg->getData());
+                arguments.emplace_back(arg);
+                auto bufdata = arg->getData();
+                int fetched_size = headerBuffer.size();
+                if (fetched_size > 0) {
+                    boost::asio::buffer_copy(bufdata, headerBuffer.data());
+                    payloadBuffers.push_back(bufdata + fetched_size);
+                    headerBuffer.consume(blocks[i] < fetched_size ? blocks[i] : fetched_size);
+                }
+                else {
+                    payloadBuffers.push_back(bufdata);
+                }
             }
+
             async_read(*socket.get(), payloadBuffers,
                        boost::bind(&ServiceSkeletonSerializationHelper::onPayloadReceived,
                                    shared_from_this(),
-                                   boost::asio::placeholders::error));
+                                   boost::asio::placeholders::error, boost::asio::placeholders::bytes_transferred));
         }
-        catch (std::exception &e) {
+        catch (const std::exception &e) {
             sendResponse(new Response(signature, false, e.what()));
         }
     }
 
-    void ServiceSkeletonSerializationHelper::onPayloadReceived(const boost::system::error_code& e)
+    void ServiceSkeletonSerializationHelper::onPayloadReceived(const error_code& e, size_t bytes_transferred)
     {
         if (e) {
-            sendResponse(new Response(signature, false, e.message()));
+            string message("Cannot receive payload: " + e.message());
+            Logger::debug() << format("%1% -- %2%") % socket->remote_endpoint() % message << std::endl;
+            sendResponse(new Response(signature, false, message));
             return;
         }
 
+        Logger::debug() << format("%1% -- Payload received.") % socket->remote_endpoint() << std::endl;
+
+        Logger::debug() << format("%1% -- Preparing response.") % socket->remote_endpoint() << std::endl;
         ServiceSkeleton *impl = ServiceSkeleton::factory().create(signature, std::move(arguments));
         sendResponse(impl->invoke());
+    }
+
+    void ServiceSkeletonSerializationHelper::sendResponse(Response * r)
+    {
+        if (r == NULL) {
+            r = new Response(signature, false, "Internal server error: produced a NULL response.");
+        }
+        response.reset(r);
+        format fmt("%1% -- Sending response: %2%");
+        Logger::debug() << fmt % socket->remote_endpoint() % response->getStatus() << std::endl;
+        response->serialize(*socket.get(),
+                            boost::bind(&ServiceSkeletonSerializationHelper::onWriteResponse,
+                                        shared_from_this(),
+                                        boost::asio::placeholders::error));
+    }
+
+    void ServiceSkeletonSerializationHelper::onWriteResponse(const error_code& e)
+    {
+        if (!e) {
+            // Initiate graceful connection closure.
+            error_code ignored_ec;
+            socket->shutdown(tcp::socket::shutdown_both, ignored_ec);
+        }
+        else {
+            Logger::debug() << e.message() << std::endl;
+        }
     }
 }

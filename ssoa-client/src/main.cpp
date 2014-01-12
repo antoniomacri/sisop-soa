@@ -66,6 +66,11 @@ bool readRandomFileFromStorageProvider(string& name, vector<byte>& buffer)
         return false;
     }
 
+    if (list.size() == 0) {
+        cerr << "No image available on the storage provider." << endl;
+        return false;
+    }
+
     name = list[rand() % list.size()];
 
     pair = Registry::getProvider(GetImageService::serviceSignature());

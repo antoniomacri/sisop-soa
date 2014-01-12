@@ -49,11 +49,18 @@ namespace storageprovider
                 unique_ptr<ServiceBufferArgument> arg(response->popArgument<ServiceBufferArgument>());
                 vector<byte>& buffer = arg->getValue();
 
+                buffer.push_back('\0'); // extra safety
+                // it also avoids problems with empty buffer (buffer.data() == NULL)
+
                 char *ptr = (char*)buffer.data();
                 char *end = ptr + buffer.size();
                 do {
-                    list.push_back(std::string(ptr));
-                    ptr += list.back().size() + 1;
+                    string item(ptr);
+                    int size = item.size(); // read size before std:::move()
+                    if (size > 0) {
+                        list.push_back(std::move(item));
+                    }
+                    ptr += size + 1;
                 } while (ptr < end);
             }
             status = response->getStatus();

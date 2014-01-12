@@ -1,19 +1,20 @@
 /*
- * server.cpp
+ * servicelistener.cpp
  */
 
-#include <listener.h>
+#include <ssoa/service/servicelistener.h>
 #include <ssoa/service/serviceskeleton.h>
 
+#include <boost/asio/placeholders.hpp>
 #include <boost/bind.hpp>
 #include <boost/thread/thread.hpp>
 
 using std::string;
 using namespace boost::asio::ip;
 
-namespace storageprovider
+namespace ssoa
 {
-    Listener::Listener(const string& host, const string& port, size_t thread_pool_size) :
+    ServiceListener::ServiceListener(const string& host, const string& port, size_t thread_pool_size) :
         threadPoolSize(thread_pool_size), signals(ioService), acceptor(ioService)
     {
         signals.add(SIGINT);
@@ -21,7 +22,7 @@ namespace storageprovider
 #if defined(SIGQUIT)
         signals.add(SIGQUIT);
 #endif
-        signals.async_wait(boost::bind(&Listener::handleStop, this));
+        signals.async_wait(boost::bind(&ServiceListener::handleStop, this));
 
         tcp::resolver resolver(ioService);
         tcp::resolver::query query(host, port);
@@ -34,7 +35,7 @@ namespace storageprovider
         startAccept();
     }
 
-    void Listener::run()
+    void ServiceListener::run()
     {
         boost::thread_group threads;
         for (size_t i = 0; i < threadPoolSize; ++i) {
@@ -44,15 +45,15 @@ namespace storageprovider
         threads.join_all();
     }
 
-    void Listener::startAccept()
+    void ServiceListener::startAccept()
     {
         clientSocket.reset(new tcp::socket(ioService));
 
-        acceptor.async_accept(*clientSocket.get(), boost::bind(&Listener::handleAccept, this,
+        acceptor.async_accept(*clientSocket.get(), boost::bind(&ServiceListener::handleAccept, this,
                                                                boost::asio::placeholders::error));
     }
 
-    void Listener::handleAccept(const boost::system::error_code& e)
+    void ServiceListener::handleAccept(const boost::system::error_code& e)
     {
         if (!e) {
             ServiceSkeleton::start(std::move(clientSocket));
@@ -61,7 +62,7 @@ namespace storageprovider
         startAccept();
     }
 
-    void Listener::handleStop()
+    void ServiceListener::handleStop()
     {
         ioService.stop();
     }

@@ -2,7 +2,6 @@
  * main.cpp
  */
 
-#include <listener.h>
 #include <rotateimageserviceimpl.h>
 #include <horizontalflipimageserviceimpl.h>
 
@@ -15,9 +14,11 @@
 
 #include <ssoa/logger.h>
 #include <ssoa/registry/registry.h>
+#include <ssoa/service/servicelistener.h>
 #include <ssoa/utils.h>
 
 using namespace std;
+using namespace ssoa;
 using namespace imagemanipulationprovider;
 namespace po = boost::program_options;
 
@@ -103,7 +104,7 @@ int main(int argc, char* argv[])
     int status = EXIT_SUCCESS;
     try {
         // Initialize and run the server until stopped.
-        Listener server(address, port, num_threads);
+        ServiceListener server(address, port, num_threads);
         Logger::info() << "Server started." << endl;
         server.run();
     }

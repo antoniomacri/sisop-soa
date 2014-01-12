@@ -1,23 +1,23 @@
 /*
- * listener.h
+ * servicelistener.h
  */
 
-#ifndef _LISTENER_H_
-#define _LISTENER_H_
+#ifndef _SERVICELISTENER_H_
+#define _SERVICELISTENER_H_
 
 #include <ssoa/service/service.h>
 
 #include <string>
 
-#include <boost/asio.hpp>
+#include <boost/asio/io_service.hpp>
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/signal_set.hpp>
 #include <boost/noncopyable.hpp>
 
-namespace imagemanipulationprovider
+namespace ssoa
 {
-    using namespace ssoa;
-
-    /// Represents a listening server.
-    class Listener: private boost::noncopyable
+    /// Represents a server listening for service requests.
+    class ServiceListener: private boost::noncopyable
     {
     public:
         /// Initializes an instance of the server and starts listening for incoming connections.
@@ -28,7 +28,7 @@ namespace imagemanipulationprovider
         /// @param thread_pool_size The number of threads allocated in the pool.
         ///
         /// @throws boost::system::system_error Thrown on failure.
-        explicit Listener(const std::string& host, const std::string& port, std::size_t thread_pool_size);
+        explicit ServiceListener(const std::string& host, const std::string& port, std::size_t thread_pool_size);
 
         /// Runs the server's io_service loop.
         void run();

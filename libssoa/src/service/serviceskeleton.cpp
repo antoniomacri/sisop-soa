@@ -163,7 +163,7 @@ namespace ssoa
         Logger::debug() << format("%1% -- Payload received.") % socket->remote_endpoint() << std::endl;
 
         Logger::debug() << format("%1% -- Preparing response.") % socket->remote_endpoint() << std::endl;
-        ServiceSkeleton *impl = ServiceSkeleton::factory().create(signature, std::move(arguments));
+        unique_ptr<ServiceSkeleton> impl(ServiceSkeleton::factory().create(signature, std::move(arguments)));
         sendResponse(impl->invoke());
     }
 

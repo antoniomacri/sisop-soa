@@ -130,7 +130,7 @@ namespace ssoa
                 ServiceArgument *arg = ServiceArgument::prepare(params[i], blocks[i]);
                 arguments.emplace_back(arg);
                 auto bufdata = arg->getData();
-                int fetched_size = headerBuffer.size();
+                size_t fetched_size = headerBuffer.size();
                 if (fetched_size > 0) {
                     boost::asio::buffer_copy(bufdata, headerBuffer.data());
                     payloadBuffers.push_back(bufdata + fetched_size);
@@ -151,7 +151,7 @@ namespace ssoa
         }
     }
 
-    void ServiceSkeletonSerializationHelper::onPayloadReceived(const error_code& e, size_t bytes_transferred)
+    void ServiceSkeletonSerializationHelper::onPayloadReceived(const error_code& e, size_t /* bytes_transferred */)
     {
         if (e) {
             string message("Cannot receive payload: " + e.message());

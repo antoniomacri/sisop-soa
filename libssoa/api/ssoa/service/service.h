@@ -95,6 +95,9 @@ namespace ssoa
         }
 
     protected:
+        /// Just a shortcut for derived classes.
+        typedef unsigned char byte;
+
         /// Just a shortcut.
         typedef std::deque<std::unique_ptr<ServiceArgument>> arg_deque;
 

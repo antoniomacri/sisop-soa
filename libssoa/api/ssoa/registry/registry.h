@@ -49,7 +49,7 @@ namespace ssoa
         /// @throws std::runtime_error An invalid response was received from registry, or
         ///         the response is unsuccessful.
         static void deregisterService(const ServiceSignature& signature, std::string host, std::string port) {
-            registerService(signature, host, port, false);
+            registerService(signature, host, port, true);
         }
 
         /// Deregisters all services of a provider.

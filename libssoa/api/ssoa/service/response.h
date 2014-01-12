@@ -30,7 +30,7 @@ namespace ssoa
         ///
         /// @param signature The signature of the requested service.
         Response(ServiceSignature signature) :
-            signature(std::move(signature)), successful(true), status("OK")
+            signature(std::move(signature)), successful(true), status("OK"), pushed(0)
         {
         }
 
@@ -40,7 +40,7 @@ namespace ssoa
         /// @param successful A value indicating whether the operation is successful.
         /// @param status A string representing the status of the operation.
         Response(ServiceSignature signature, bool successful, std::string status) :
-            signature(std::move(signature)), successful(successful), status(std::move(status))
+            signature(std::move(signature)), successful(successful), status(std::move(status)), pushed(0)
         {
         }
 
@@ -62,21 +62,25 @@ namespace ssoa
         /// Adds an argument to the list of output arguments.
         ///
         /// @tparam ServArg The actual type of the argument (derived of ServiceArgument).
-        ///         The template is only used to check the @c type() value.
+        ///         The template is only used to check the value returned by its @c type() method.
         ///
         /// @param arg A pointer to a ServiceArgument object which has to be added.
         ///        The ownership of @c arg is transferred to this Response instance.
         ///
-        /// @throws std::logic_error If the given ServiceArgument does not match the
-        ///         one specified in the signature.
+        /// @throws std::logic_error If all arguments have already been pushed, or if the given
+        ///         ServiceArgument does not match the one stated in the signature.
         template<class ServArg>
-        void pushArgument(const ServArg *arg)
+        void pushArgument(ServArg *arg)
         {
-            if (signature.getInputParams()[arguments.size()] != ServArg::type()) {
-                std::string expected = signature.getInputParams()[arguments.size()];
+            if (pushed == signature.getOutputParams().size()) {
+                throw std::logic_error("All arguments already pushed.");
+            }
+            std::string expected = signature.getOutputParams()[pushed];
+            if (expected != ServArg::type()) {
                 throw std::logic_error("Invalid argument (must be '" + expected + "').");
             }
-            arguments.push_back(arg);
+            arguments.emplace_back(arg);
+            pushed++;
         }
 
         /// Gets an argument from the list of output arguments and removes it from the list.
@@ -86,17 +90,27 @@ namespace ssoa
         /// @return A pointer to the retrieved ServiceArgument object.
         ///         The ownership of @c arg is transferred to the caller.
         ///
-        /// @throws std::logic_error If the specified ServiceArgument does not match the
-        ///         one stated in the signature.
+        /// @throws std::logic_error If not all arguments have been pushed yet, or if all
+        ///         arguments have already been popped, or if the specified ServiceArgument
+        ///         does not match the one stated in the signature.
         template<class ServArg>
-        const ServArg* popArgument()
+        ServArg* popArgument()
         {
-            ServiceArgument *a = arguments.front();
+            if (pushed != signature.getOutputParams().size()) {
+                throw std::logic_error("Not all arguments have been pushed.");
+            }
+            if (arguments.size() <= 0) {
+                throw std::logic_error("All arguments already popped.");
+            }
+
+            ServiceArgument *a = arguments.front().get();
             ServArg *result = dynamic_cast<ServArg*>(a);
             if (result == NULL) {
-                std::string expected = signature.getInputParams()[0];
+                int index = signature.getOutputParams().size() - arguments.size();
+                std::string expected = signature.getOutputParams()[index];
                 throw std::logic_error("Invalid argument (must be '" + expected + "').");
             }
+            arguments.front().release();
             arguments.pop_front();
             return result;
         }
@@ -112,11 +126,11 @@ namespace ssoa
         template<typename SyncReadStream>
         static Response * deserialize(SyncReadStream& s)
         {
-            boost::asio::streambuf streambuf;
-            size_t n = boost::asio::read_until(s, streambuf, '\0');
-            boost::asio::streambuf::const_buffers_type bufs = streambuf.data();
-            std::string header(boost::asio::buffers_begin(bufs), boost::asio::buffers_begin(bufs) + n);
+            boost::asio::streambuf headerBuffer;
+            size_t bytes_transferred = boost::asio::read_until(s, headerBuffer, '\0');
+            boost::asio::streambuf::const_buffers_type bufs = headerBuffer.data();
 
+            std::string header(buffers_begin(bufs), buffers_begin(bufs) + bytes_transferred - 1);
             std::istringstream ss(header);
             YAML::Parser parser(ss);
             YAML::Node node;
@@ -126,7 +140,7 @@ namespace ssoa
             bool successful = node["successful"].to<bool>();
             std::string status = node["status"].to<std::string>();
 
-            std::vector<int> blocks;
+            std::vector<unsigned int> blocks;
             const YAML::Node & blocksNode = node["blocks"];
             for (unsigned i = 0; i < blocksNode.size(); i++) {
                 int block;
@@ -134,16 +148,41 @@ namespace ssoa
                 blocks.push_back(block);
             }
 
-            Response *response = new Response(signature, successful, status);
-            auto& params = signature.getOutputParams();
-            std::vector<boost::asio::mutable_buffer> buffers;
-            for (unsigned i = 0; i < params.size(); i++) {
-                ServiceArgument *arg = ServiceArgument::prepare(params[i], blocks[i]);
-                response->arguments.push_back(std::unique_ptr<ServiceArgument>(arg));
-                buffers.push_back(arg->getData());
+            if (successful == false) {
+                return new Response(signature, false, status);
             }
 
-            boost::asio::read(s, buffers);
+            const auto& params = signature.getOutputParams();
+            if (blocks.size() != params.size()) {
+                std::string bs = boost::lexical_cast<std::string>(blocks.size());
+                std::string ps = boost::lexical_cast<std::string>(params.size());
+                throw std::runtime_error(
+                    "Received an invalid response (expected " + ps + " argument blocks, received " + bs + ").");
+            }
+
+            // We must now consume additional data contained in the streambuf beyond the delimiter '\0'
+            // specified to async_read_until().
+            headerBuffer.consume(bytes_transferred);
+
+            Response *response = new Response(signature, successful, status);
+
+            std::vector<boost::asio::mutable_buffer> payloadBuffers;
+            for (unsigned i = 0; i < params.size(); i++) {
+                ServiceArgument *arg = ServiceArgument::prepare(params[i], blocks[i]);
+                response->arguments.emplace_back(arg);
+                auto bufdata = arg->getData();
+                int fetched_size = headerBuffer.size();
+                if (fetched_size > 0) {
+                    boost::asio::buffer_copy(bufdata, headerBuffer.data());
+                    payloadBuffers.push_back(bufdata + fetched_size);
+                    headerBuffer.consume(blocks[i] < fetched_size ? blocks[i] : fetched_size);
+                }
+                else {
+                    payloadBuffers.push_back(bufdata);
+                }
+            }
+
+            boost::asio::read(s, payloadBuffers);
             return response;
         }
 
@@ -163,9 +202,12 @@ namespace ssoa
 
     protected:
         /// Just a shortcut.
-        typedef std::deque<std::unique_ptr<const ServiceArgument>> arg_deque;
+        typedef std::deque<std::unique_ptr<ServiceArgument>> arg_deque;
 
         /// Builds a ConstBufferSequence which can be used to serialize this Response.
+        ///
+        /// The Response keeps ownership of memory referred to by all buffers, which can
+        /// can be invalidated by any non-const method invoked on this instance.
         std::vector<boost::asio::const_buffer> getConstBuffers() const;
 
     private:
@@ -173,6 +215,8 @@ namespace ssoa
         bool successful;
         std::string status;
         arg_deque arguments;
+        int pushed;
+        mutable std::string header;    // Temporarily keeps the header
     };
 }
 

@@ -86,7 +86,7 @@ test-library: $(LIBSSOATEST)
 LIBSSOATEST_INCLUDES := libssoa-test/src libssoa/api
 LIBSSOATEST_OBJECTS := $(call GETOBJECTS,libssoa-test)
 LIBSSOATEST_DEPS := $(LIBSSOATEST_OBJECTS:.o=.d)
-LIBSSOATEST_LIBS := ssoa boost_regex boost_unit_test_framework
+LIBSSOATEST_LIBS := ssoa boost_regex boost_system boost_unit_test_framework yaml-cpp
 
 $(LIBSSOATEST): $(LIBSSOA) $(LIBSSOATEST_OBJECTS)
 	$(call LINK,$(LIBSSOATEST_OBJECTS),$(LIBSSOATEST_LIBS))

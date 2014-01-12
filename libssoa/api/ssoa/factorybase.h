@@ -14,6 +14,9 @@
 namespace ssoa
 {
     /// Support for synchronous serialization of a class hierarchy.
+    ///
+    /// Methods of this class should never be called from inside the destructor of a static
+    /// object.
     template<class T, typename ... Args>
     class FactoryBase
     {
@@ -86,9 +89,11 @@ namespace ssoa
         std::map<std::string, CreatorMethod>& mappings()
         {
             // Construct-on-first-use to avoid the static initialization order problem
-            static std::map<std::string, CreatorMethod> * m = new std::map<std::string, CreatorMethod>();
+            static std::map<std::string, CreatorMethod> m;
             // Using static: many instances with equal template arguments will share the same m;
-            return *m;
+            // Using static object instead of static pointer: be careful not to call this method
+            // from the destructor of a static object.
+            return m;
         }
     };
 }

@@ -50,7 +50,7 @@ endef
 ### Main target
 ###
 .PHONY: all
-all: library registry storageprovider imagemanipulationprovider
+all: library registry storageprovider imagemanipulationprovider client
 
 
 ###
@@ -196,6 +196,30 @@ ssoa-imagemanipulationprovider/obj/%.o: ssoa-imagemanipulationprovider/src/%.cpp
 
 CLEAN += $(IMAGEMANIPULATIONPROVIDER_OBJECTS) $(IMAGEMANIPULATIONPROVIDER_DEPS) ssoa-imagemanipulationprovider/obj
 DISTCLEAN += $(IMAGEMANIPULATIONPROVIDER) $(BIN)
+
+
+###
+### ssoa-client
+###
+CLIENT := $(BIN)/ssoa-client
+.PHONY: client
+client: $(CLIENT)
+
+CLIENT_INCLUDES := ssoa-client/src libssoa/api ssoa-storageprovider/api ssoa-imagemanipulationprovider/api
+CLIENT_OBJECTS := $(call GETOBJECTS,ssoa-client)
+CLIENT_DEPS := $(CLIENT_OBJECTS:.o=.d)
+CLIENT_LIBS := ssoa pthread boost_regex boost_system boost_filesystem yaml-cpp
+
+$(CLIENT): $(LIBSSOA) $(CLIENT_OBJECTS)
+	$(call LINK,$(CLIENT_OBJECTS),$(CLIENT_LIBS))
+
+ssoa-client/obj/%.o: ssoa-client/src/%.cpp
+	$(call COMPILE,$(CLIENT_INCLUDES))
+
+-include $(CLIENT_DEPS)
+
+CLEAN += $(CLIENT_OBJECTS) $(CLIENT_DEPS) ssoa-client/obj
+DISTCLEAN += $(CLIENT) $(BIN)
 
 
 ###

@@ -110,6 +110,7 @@ namespace ssoa
         Service(ServiceSignature signature, arg_deque arguments) :
             signature(std::move(signature)), arguments(std::move(arguments)), pushed(0)
         {
+            pushed = this->arguments.size(); // Use 'this' since actual parameter has been move()d
         }
 
     private:

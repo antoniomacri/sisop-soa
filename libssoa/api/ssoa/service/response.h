@@ -170,6 +170,7 @@ namespace ssoa
             for (unsigned i = 0; i < params.size(); i++) {
                 ServiceArgument *arg = ServiceArgument::prepare(params[i], blocks[i]);
                 response->arguments.emplace_back(arg);
+                response->pushed++;
                 auto bufdata = arg->getData();
                 int fetched_size = headerBuffer.size();
                 if (fetched_size > 0) {

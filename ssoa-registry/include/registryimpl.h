@@ -9,8 +9,9 @@
 
 #include <list>
 #include <map>
-#include <mutex>
 #include <string>
+
+#include <boost/thread/shared_mutex.hpp>
 
 namespace ssoa
 {
@@ -77,7 +78,7 @@ namespace ssoa
         service_data_map services;
 
         /// A mutex to protect integrity of the registry data structures.
-        std::mutex mutex;
+        boost::shared_mutex mutex;
     };
 }
 

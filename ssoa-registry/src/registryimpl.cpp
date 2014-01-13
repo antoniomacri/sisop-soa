@@ -9,6 +9,9 @@
 
 using std::string;
 using std::vector;
+using boost::shared_mutex;
+using boost::shared_lock;
+using boost::unique_lock;
 
 namespace ssoa
 {
@@ -17,7 +20,9 @@ namespace ssoa
         if (!signature.isValid()) {
             throw std::runtime_error("The specified signature is not valid.");
         }
-        std::lock_guard<std::mutex> lock(mutex);
+
+        unique_lock<shared_mutex> writerLock(mutex);
+
         auto& data = services[signature.getName()];
         if (data.signature == ServiceSignature::any) {
             data.signature = signature;
@@ -40,7 +45,9 @@ namespace ssoa
         if (signature == ServiceSignature::any) {
             return deregisterServer(host, port) > 0;
         }
-        std::lock_guard<std::mutex> lock(mutex);
+
+        unique_lock<shared_mutex> writerLock(mutex);
+
         auto pos = services.find(signature.getName());
         if (pos != services.end()) {
             auto& data = pos->second;
@@ -63,7 +70,8 @@ namespace ssoa
 
     int RegistryImpl::deregisterServer(string host, string port)
     {
-        std::lock_guard<std::mutex> lock(mutex);
+        unique_lock<shared_mutex> writerLock(mutex);
+
         std::pair<string, string> pair = std::make_pair(std::move(host), std::move(port));
         int count = 0;
         vector<service_data_map::iterator> emptyEntries;
@@ -89,7 +97,8 @@ namespace ssoa
 
     bool RegistryImpl::lookupService(const ServiceSignature& signature, string& host, string& port)
     {
-        std::lock_guard<std::mutex> lock(mutex);
+        shared_lock<shared_mutex> readerLock(mutex);
+
         auto pos = services.find(signature.getName());
         if (pos != services.end()) {
             auto& data = pos->second;

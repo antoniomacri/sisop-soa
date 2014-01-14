@@ -15,6 +15,7 @@ namespace storageprovider
         std::unique_ptr<ServiceBufferArgument> buffer(popArgument<ServiceBufferArgument>());
 
         StorageService::saveFile(name->getValue(), buffer->getValue());
+        Logger::info() << "Stored image '" << name->getValue() << "'." << std::endl;
 
         return new Response(serviceSignature(), true, "OK");
     }

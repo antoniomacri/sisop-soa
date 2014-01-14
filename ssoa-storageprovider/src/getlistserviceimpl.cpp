@@ -17,6 +17,7 @@ namespace storageprovider
     Response * GetListServiceImpl::invoke()
     {
         vector<string> list = StorageService::getList();
+        Logger::info() << "Built list of images (count: " << list.size() << ")." << std::endl;
 
         vector<byte> buffer;
         for (auto it = list.begin(); it != list.end(); ++it) {

@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
     po::options_description description("Allowed options");
     description.add_options()
         ("help", "Shows this help")
-        ("address,a", po::value<string>(&address), "Listens on the given local address")
+        ("address,a", po::value<string>(&address)->default_value("127.0.0.1"), "Listens on the given local address")
         ("port,p", po::value<string>(&port), "Listens on the given local port")
         ("threads,n", po::value<int>(&num_threads)->default_value(10), "Specifies the number of threads in the pool");
 
@@ -46,13 +46,10 @@ int main(int argc, char* argv[])
         cout << description;
         return EXIT_FAILURE;
     }
+
     if (vm.find("port") == vm.end()) {
         cerr << "Local port not specified!" << endl;
         return EXIT_FAILURE;
-    }
-
-    if (vm.find("address") == vm.end()) {
-        Logger::info() << "Local address not specified: registry will listen on the loopback interface." << endl;
     }
 
     try {

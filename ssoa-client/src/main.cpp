@@ -20,15 +20,19 @@
 #include <netinet/in.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/parsers.hpp>
+#include <boost/program_options/variables_map.hpp>
 
 using namespace std;
 using namespace ssoa;
 using namespace storageprovider;
 using namespace imagemanipulationprovider;
+namespace po = boost::program_options;
 
 typedef unsigned char byte;
 
-string imageFolder = "images";
+string imageFolder;
 
 bool readRandomFileFromDisk(string& filename, vector<byte>& buffer)
 {
@@ -86,15 +90,46 @@ bool readRandomFileFromStorageProvider(string& name, vector<byte>& buffer)
 
 int main(int argc, char *argv[])
 {
-    if (argc != 3) {
-        cerr << "Usage: " << argv[0] << " <address> <port>" << std::endl;
+    string registryAddress, registryPort;
+
+    po::options_description description("Allowed options");
+    description.add_options()
+        ("help", "Shows this help")
+        ("registry-address,A", po::value<string>(&registryAddress)->default_value("127.0.0.1"),
+         "Specifies the address of the registry")
+        ("registry-port,P", po::value<string>(&registryPort), "Specifies the port of the registry")
+        ("image-folder,f", po::value<string>(&imageFolder), "Specifies the folder containing images");
+
+    po::variables_map vm;
+
+    try {
+        po::store(po::parse_command_line(argc, argv, description), vm);
+        po::notify(vm);
+    }
+    catch (const exception& e) {
+        cerr << "Error parsing command line arguments: " << e.what() << endl;
+        cerr << description;
+        return EXIT_FAILURE;
+    }
+
+    if (vm.find("help") != vm.end()) {
+        cout << description;
+        return EXIT_FAILURE;
+    }
+
+    if (vm.find("registry-port") == vm.end()) {
+        cerr << "Registry port not specified!" << endl;
+        return EXIT_FAILURE;
+    }
+    if (vm.find("image-folder") == vm.end()) {
+        cerr << "Image folder not specified!" << endl;
         return EXIT_FAILURE;
     }
 
     srand(time(NULL));
 
     ssoa::setup();
-    Registry::initialize(argv[1], argv[2]);
+    Registry::initialize(registryAddress, registryPort);
 
     try {
         while (true) {

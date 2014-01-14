@@ -210,7 +210,7 @@ client: $(CLIENT)
 CLIENT_INCLUDES := ssoa-client/src libssoa/api ssoa-storageprovider/api ssoa-imagemanipulationprovider/api
 CLIENT_OBJECTS := $(call GETOBJECTS,ssoa-client)
 CLIENT_DEPS := $(CLIENT_OBJECTS:.o=.d)
-CLIENT_LIBS := ssoa pthread boost_regex boost_system boost_filesystem yaml-cpp
+CLIENT_LIBS := ssoa pthread boost_regex boost_system boost_filesystem boost_program_options yaml-cpp
 
 $(CLIENT): $(LIBSSOA) $(CLIENT_OBJECTS)
 	$(call LINK,$(CLIENT_OBJECTS),$(CLIENT_LIBS))

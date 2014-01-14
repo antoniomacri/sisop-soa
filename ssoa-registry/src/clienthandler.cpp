@@ -58,7 +58,7 @@ namespace ssoa
             }
             catch (std::runtime_error& e) {
                 // An error dependent on the request (e.g., malformed YAML).
-                Logger::debug() << format("Caught runtime_error: %1%.") % e.what() << std::endl;
+                Logger::error() << format("Caught runtime_error: %1%.") % e.what() << std::endl;
                 response = RegistryErrorMessage(e.what()).toYaml();
             }
             catch (std::exception& e) {
@@ -125,12 +125,12 @@ namespace ssoa
                 done = registry.registerService(ServiceSignature(service), host, port);
             }
             format fmt("%1% <%2%, %3%, %4%> -- <%5%, %6%>");
-            Logger::debug() << fmt % (deregister ? "-" : "+") % service % host % port % done % "OK" << std::endl;
+            Logger::info() << fmt % (deregister ? "-" : "+") % service % host % port % done % "OK" << std::endl;
             return RegistryRegistrationResponse(true, "OK").toYaml();
         }
         catch (const std::exception& e) {
             format fmt("%1% <%2%, %3%, %4%> -- %5%");
-            Logger::debug() << fmt % (deregister ? "-" : "+") % service % host % port % e.what() << std::endl;
+            Logger::info() << fmt % (deregister ? "-" : "+") % service % host % port % e.what() << std::endl;
             return RegistryRegistrationResponse(e.what()).toYaml();
         }
     }
@@ -141,11 +141,11 @@ namespace ssoa
         try {
             string host, port;
             if (registry.lookupService(ServiceSignature(service), host, port)) {
-                Logger::debug() << format("* %1% -- <%2%, %3%>") % service % host % port << std::endl;
+                Logger::info() << format("* %1% -- <%2%, %3%>") % service % host % port << std::endl;
                 return RegistryServiceResponse(host, port).toYaml();
             }
             else {
-                Logger::debug() << format("* %1% -- Not found.") % service << std::endl;
+                Logger::info() << format("* %1% -- Not found.") % service << std::endl;
                 return RegistryServiceResponse("No provider available for the requested service.").toYaml();
             }
         }

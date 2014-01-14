@@ -120,6 +120,7 @@ int main(int argc, char *argv[])
             cout << "Response received (host: " << pair.first << ", port: " << pair.second << ")." << endl;
             RotateImageService rotateImage(pair.first, pair.second);
             int degrees = rand() % 360;
+            cout << "Rotating image by " << degrees << " degrees..." << endl;
             if (!rotateImage.invoke(degrees, buffer, buffer)) {
                 cerr << "Cannot rotate image on server." << endl;
                 cerr << "  Returned status: " << rotateImage.getStatus() << endl;
@@ -132,6 +133,7 @@ int main(int argc, char *argv[])
             pair<string, string> pair = Registry::getProvider(signature);
             cout << "Response received (host: " << pair.first << ", port: " << pair.second << ")." << endl;
             HorizontalFlipImageService hflipImage(pair.first, pair.second);
+            cout << "Flipping image horizontally..." << endl;
             if (!hflipImage.invoke(buffer, buffer)) {
                 cerr << "Cannot flip image on server." << endl;
                 cerr << "  Returned status: " << hflipImage.getStatus() << endl;
@@ -144,6 +146,7 @@ int main(int argc, char *argv[])
         pair<string, string> pair = Registry::getProvider(signature);
         cout << "Response received (host: " << pair.first << ", port: " << pair.second << ")." << endl;
         StoreImageService storeImage(pair.first, pair.second);
+        cout << "Storing image on server..." << endl;
         if (!storeImage.invoke(name, buffer)) {
             cerr << "Cannot store image on server." << endl;
             cerr << "  Returned status: " << storeImage.getStatus() << endl;

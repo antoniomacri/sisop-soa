@@ -28,7 +28,7 @@ using namespace imagemanipulationprovider;
 
 typedef unsigned char byte;
 
-string imageFolder = "./";
+string imageFolder = "images";
 
 bool readRandomFileFromDisk(string& filename, vector<byte>& buffer)
 {
@@ -37,7 +37,7 @@ bool readRandomFileFromDisk(string& filename, vector<byte>& buffer)
     for (boost::filesystem::directory_iterator it(p), end; it != end; ++it) {
         if (boost::filesystem::is_regular_file(it->status())
             && boost::iequals(it->path().extension().c_str(), ".jpg")) {
-            files.push_back(it->path().filename().c_str());
+            files.push_back(it->path().c_str());
         }
     }
     if (files.size() == 0) {

@@ -31,11 +31,31 @@ namespace storageprovider
     {
         shared_lock<shared_mutex> readerLock(mutex);
 
-        boost::filesystem::path p(path);
         vector<string> files;
-        for (boost::filesystem::directory_iterator it(p), end; it != end; ++it) {
+        for (boost::filesystem::recursive_directory_iterator it(path), end; it != end; ++it) {
             if (boost::filesystem::is_regular_file(it->status())) {
-                files.push_back(it->path().filename().c_str());
+                // In returned filenames skip the base path
+                boost::filesystem::path relativePath, skipPath(path);
+                skipPath.normalize();
+                auto itCombined = it->path().begin();
+                for (auto itSkip = skipPath.begin(); itSkip != skipPath.end();) {
+                    if (*itSkip == *itCombined) {
+                        ++itSkip;
+                        ++itCombined;
+                        continue;
+                    }
+                    if (itSkip->string() == ".")
+                        ++itSkip;
+                    else if (itCombined->string() == ".")
+                        ++itCombined;
+                    else
+                        break; // Something went wrong
+                }
+                while (itCombined != it->path().end()) {
+                    relativePath /= *itCombined;
+                    ++itCombined;
+                }
+                files.push_back(relativePath.string());
             }
         }
         return files;
@@ -47,6 +67,10 @@ namespace storageprovider
 
         boost::filesystem::path fullPath(path);
         fullPath /= filename;
+
+        if (!boost::filesystem::exists(fullPath)) {
+            throw std::runtime_error("The specified file '" + string(fullPath.c_str()) + "' does not exist.");
+        }
 
         ifstream infile(fullPath.c_str(), ifstream::binary | ifstream::in | ifstream::ate);
         buffer.resize(infile.tellg());

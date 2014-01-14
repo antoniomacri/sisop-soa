@@ -36,9 +36,8 @@ string imageFolder;
 
 bool readRandomFileFromDisk(string& filename, vector<byte>& buffer)
 {
-    boost::filesystem::path p(imageFolder);
     vector<string> files;
-    for (boost::filesystem::directory_iterator it(p), end; it != end; ++it) {
+    for (boost::filesystem::recursive_directory_iterator it(imageFolder), end; it != end; ++it) {
         if (boost::filesystem::is_regular_file(it->status())
             && boost::iequals(it->path().extension().c_str(), ".jpg")) {
             files.push_back(it->path().c_str());
@@ -48,8 +47,32 @@ bool readRandomFileFromDisk(string& filename, vector<byte>& buffer)
         cerr << "No image found in folder \"" << imageFolder << "\"." << endl;
         return false;
     }
-    filename = files[rand() % files.size()];
-    ifstream ifs(filename.c_str(), ios::binary | ios::ate);
+
+    // In argument filename skip the path of imageFolder
+    boost::filesystem::path combinedPath(files[rand() % files.size()]), relativePath;
+    boost::filesystem::path skipPath(imageFolder);
+    skipPath.normalize();
+    auto itCombined = combinedPath.begin();
+    for (auto itSkip = skipPath.begin(); itSkip != skipPath.end();) {
+        if (*itSkip == *itCombined) {
+            ++itSkip;
+            ++itCombined;
+            continue;
+        }
+        if (itSkip->string() == ".")
+            ++itSkip;
+        else if (itCombined->string() == ".")
+            ++itCombined;
+        else
+            break; // Something went wrong
+    }
+    while (itCombined != combinedPath.end()) {
+        relativePath /= *itCombined;
+        ++itCombined;
+    }
+    filename = relativePath.string();
+
+    ifstream ifs(combinedPath.c_str(), ios::binary | ios::ate);
     buffer.resize(ifs.tellg());
     ifs.seekg(0, ios::beg);
     ifs.read(reinterpret_cast<char*>(buffer.data()), buffer.size());

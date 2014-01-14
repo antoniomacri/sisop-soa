@@ -184,7 +184,9 @@ imagemanipulationprovider: $(IMAGEMANIPULATIONPROVIDER)
 IMAGEMANIPULATIONPROVIDER_INCLUDES := ssoa-imagemanipulationprovider/src libssoa/api
 IMAGEMANIPULATIONPROVIDER_OBJECTS := $(call GETOBJECTS,ssoa-imagemanipulationprovider)
 IMAGEMANIPULATIONPROVIDER_DEPS := $(IMAGEMANIPULATIONPROVIDER_OBJECTS:.o=.d)
-IMAGEMANIPULATIONPROVIDER_LIBS := ssoa boost_thread pthread boost_regex boost_system boost_program_options yaml-cpp
+IMAGEMANIPULATIONPROVIDER_LIBS := ssoa \
+	boost_thread boost_regex boost_system boost_filesystem boost_program_options \
+	pthread yaml-cpp jpeg X11
 
 $(IMAGEMANIPULATIONPROVIDER): $(LIBSSOA) $(IMAGEMANIPULATIONPROVIDER_OBJECTS)
 	$(call LINK,$(IMAGEMANIPULATIONPROVIDER_OBJECTS),$(IMAGEMANIPULATIONPROVIDER_LIBS))

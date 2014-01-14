@@ -5,7 +5,8 @@
 #include "storageservice.h"
 
 #include <fstream>
-#include <iostream>
+
+#include <boost/filesystem.hpp>
 
 using std::ifstream;
 using std::ofstream;
@@ -52,6 +53,9 @@ namespace storageprovider
         infile.seekg(0, ifstream::beg);
         infile.read(reinterpret_cast<char*>(buffer.data()), buffer.size());
         infile.close();
+        if (infile.fail()) {
+            throw std::runtime_error("Cannot read file '" + string(fullPath.c_str()) + "' (" + strerror(errno) + ").");
+        }
     }
 
     void StorageService::saveFile(string filename, const vector<unsigned char>& buffer)
@@ -61,8 +65,17 @@ namespace storageprovider
         boost::filesystem::path fullPath(path);
         fullPath /= filename;
 
+        if (!boost::filesystem::exists(fullPath.parent_path())) {
+            if (!boost::filesystem::create_directory(fullPath.parent_path()))
+                throw std::runtime_error("Cannot create folder '" + string(fullPath.parent_path().c_str()) + "'.");
+        }
+
         ofstream outfile(fullPath.c_str(), ofstream::binary | ofstream::out);
         outfile.write(reinterpret_cast<const char*>(buffer.data()), buffer.size());
+        outfile.flush();
         outfile.close();
+        if (outfile.fail()) {
+            throw std::runtime_error("Cannot write file '" + string(fullPath.c_str()) + "' (" + strerror(errno) + ").");
+        }
     }
 }

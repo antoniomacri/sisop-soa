@@ -8,7 +8,6 @@
 #include <string>
 #include <vector>
 
-#include <boost/filesystem.hpp>
 #include <boost/thread/shared_mutex.hpp>
 
 namespace storageprovider

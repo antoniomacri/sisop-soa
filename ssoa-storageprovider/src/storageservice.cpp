@@ -32,6 +32,11 @@ namespace storageprovider
         shared_lock<shared_mutex> readerLock(mutex);
 
         vector<string> files;
+
+        if (!boost::filesystem::exists(path)) {
+            return files;
+        }
+
         for (boost::filesystem::recursive_directory_iterator it(path), end; it != end; ++it) {
             if (boost::filesystem::is_regular_file(it->status())) {
                 // In returned filenames skip the base path

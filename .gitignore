@@ -5,3 +5,4 @@ obj/
 .metadata/
 .project
 .cproject
+doc/*-help.txt

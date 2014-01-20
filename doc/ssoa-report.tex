@@ -1,0 +1,570 @@
+% !TeX program = pdfLaTeX -shell-escape
+% !TeX encoding = UTF-8
+
+\nonstopmode
+\overfullrule=10pt
+
+\documentclass[a4paper,twoside]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english,italian]{babel}
+
+\usepackage{fourier}
+\usepackage[scaled=0.84]{beramono}
+\renewcommand\sfdefault{iwona}
+
+\usepackage{caption}
+\usepackage{enumitem}
+\usepackage{tabularx,booktabs}
+\usepackage[fleqn]{amsmath}
+\usepackage{listings}
+\usepackage[svgnames]{xcolor}
+\usepackage{hyperref}
+\usepackage{pgffor}
+\usepackage[italian]{varioref}
+\usepackage{microtype}
+
+\frenchspacing
+\captionsetup{labelfont={bf,sf},font=small,format=hang,textformat=period}
+\setlist{noitemsep}
+\hypersetup{bookmarksopen, pdfstartview={XYZ null null 0.9}}
+\hypersetup{colorlinks, urlcolor=Maroon, linkcolor=blue}
+
+\newcommand*\file{\texttt}
+\newcommand*\meta[1]{$\langle$\emph{#1}$\rangle$}
+\newcommand\code{\lstinline[basicstyle=\normalsize\ttfamily]}
+\lstset{language=C++, escapeinside=`'}
+\lstset{literate={à}{{\`a}}1 {è}{{\`e}}1 {ò}{{\`o}}1 {ù}{{\`u}}1}
+\lstset{belowcaptionskip=4pt}
+\lstset{basicstyle=\footnotesize\ttfamily, tabsize=4, showstringspaces=false}
+\lstset{frameround=fttt, frame=trb}
+\addto\captionsitalian{\renewcommand*\lstlistingname{Listato}}
+
+\expandafter\def\expandafter\UrlBreaks\expandafter{\UrlBreaks%
+  \do\a\do\b\do\c\do\d\do\e\do\f\do\g\do\h\do\i\do\j%
+  \do\k\do\l\do\m\do\n\do\o\do\p\do\q\do\r\do\s\do\t%
+  \do\u\do\v\do\w\do\x\do\y\do\z\do\A\do\B\do\C\do\D%
+  \do\E\do\F\do\G\do\H\do\I\do\J\do\K\do\L\do\M\do\N%
+  \do\O\do\P\do\Q\do\R\do\S\do\T\do\U\do\V\do\W\do\X%
+  \do\Y\do\Z%
+  \do\0\do\1\do\2\do\3\do\4\do\5\do\6\do\7\do\8\do\9}
+
+\makeatletter
+\pagestyle{myheadings}
+\def\leftpagehead{Progetto di Sisop\hskip0.6em--\hskip0.6em
+  Antonio Macrì, Francesco Racciatti}
+\def\sectionmark#1{%
+  \markboth {\leftpagehead}{\ifnum \c@secnumdepth >\z@
+    \thesection.\hskip0.6em
+  \fi #1}}
+\def\subsectionmark#1{%
+  \markboth {\leftpagehead}{\ifnum \c@secnumdepth >\@ne
+    \thesubsection.\hskip0.6em
+  \fi #1}}
+\makeatother
+
+
+\title{\emph{Service Oriented Architecture}\texorpdfstring{\\}{}\vskip2ex
+       \Large Progetto Unix di\texorpdfstring{\\}{}
+       Sistemi Operativi e Programmazione Distribuita}
+\author{Antonio Macrì \quad Francesco Racciatti}
+\def\day{20}
+\def\month{1}
+\def\year{2014}
+
+\begin{document}
+\maketitle
+\vspace*{\stretch{1}}
+\tableofcontents
+\vspace*{\stretch{3}}
+\null
+\clearpage
+
+
+
+\section{\textsl{Specifiche}}
+
+\begingroup
+\slshape
+
+\subsection{Struttura generale}
+
+Lo scopo del progetto è di realizzare una infrastruttura che realizzi una architettura “Service Oriented”. L'uso di tale architettura deve essere dimostrato implementando una semplice applicazione di processamento di immagini.
+
+Il sistema consiste di un \textbf{registro dei servizi}, uno o più \textbf{service provider} e uno o più \textbf{client}.
+
+Il progetto va realizzato in C++.
+
+\subsubsection{Servizi e Service provider}
+Un \textbf{service-provider} è un processo che mette a disposizione alcuni \textbf{servizi} per i client che ne fanno richiesta. Un servizio può essere visto come una funzione che:
+\begin{itemize}
+\item Ha un nome (che identifica univocamente il servizio nel sistema)
+\item prende dei parametri in ingresso
+\item fornisce dei parametri in uscita
+\end{itemize}
+
+Un servizio è quindi descritto da una stringa contenente il nome e da una lista ordinata di parametri, ognuno dei quali contiene un \emph{tipo} e una direzione (\texttt{IN} o \texttt{OUT}). Il tipo del parametro può essere uno dei seguenti:
+\begin{itemize}
+\item numero intero
+\item numero floating point (double)
+\item stringa
+\item buffer di bytes
+\end{itemize}
+
+Il service provider è un processo di tipo server che sta in attesa di richieste di utilizzo di un servizio da parte dei client. Quando una richiesta arriva, il service provider fa il parsing della richiesta e di tutti i parametri, ne verifica la correttezza, e la processa. Al termine manda la risposta al client. La risposta contiene i parametri di uscita (se ci sono).
+
+Il service provider è un programma concorrente; esso serve tutte le richieste in arrivo in parallelo, se necessario utilizzando dei mutex o delle variabili condition per regolare l'accesso alle risorse condivise interne (dipendentemente dal tipo di servizio).
+
+\subsubsection{Registro dei servizi}
+Il registro dei servizi è un processo che si occupa di registrare la corrispondenza tra servizio e service provider. Infatti, service provider differenti possono supportare servizi diversi oppure lo stesso servizio. Ogni service provider è identificato univocamente dalla coppia (\emph{indirizzo IP}, \emph{porta}). Il registro dei servizi associa il nome del servizio con il service provider.
+
+Un cliente che vuole usufruire di un servizio per prima cosa chiede al registro dei servizi quali service provider forniscono il determinato servizio; quindi indirizza la propria richiesta direttamente al service provider indicato dal registro.
+
+Poiché più di un service provider può fornire lo stesso servizio, il registro dei servizi usa una qualunque politica (definita da voi) per selezionare uno dei service provider corrispondenti al servizio richiesto (ad esempio round robin).
+
+Il registro è dinamico: all’inizio, nessun servizio è registrato. Un service provider registra un servizio mandando un opportuno messaggio al registro; successivamente, un service provider può volersi cancellare dal registro, oppure de-registrare un suo servizio.
+
+\subsubsection{Client}
+Il client che ha bisogno di utilizzare un servizio per prima cosa si rivolge al registro dei servizi, chiedendo l’indirizzo e la porta del service provider a cui rivolgersi. Successivamente interagisce direttamente con il service provider.
+
+
+\subsection{Implementazione}
+
+Lo scopo principale del progetto è la realizzazione del registro dei servizi e di una libreria per poter realizzare un service provider e un client in maniera semplice ed efficace.
+
+Lo scopo secondario è la realizzazione di alcuni service provider che utilizzano la
+libreria, in maniera da dimostrarne il funzionamento.
+
+\subsubsection{Libreria}
+La libreria deve supportare una classe base chiamata \textbf{Service} che permetta di realizzare
+dei servizi. La classe Service deve supportare le seguenti funzionalità:
+\begin{itemize}
+\item \emph{Interfaccia}: la classe deve fornire un metodo per descrivere il servizio, in termini del nome e del numero e tipo dei parametri. Tale informazione andrà poi registrata nel registro dei servizi. Inoltre, può essere usata per controllare la consistenza delle richieste dei client (ovvero che il client specifichi il numero e il tipo corretto dei parametri.
+\item \emph{Comunicazione}: la classe deve fornire un metodo semplice per inviare la richiesta di un servizio al service provider su un socket. La classe deve occuparsi (direttamente o indirettamente tramite altre classi di appoggio) di codificare un messaggio o una sequenza di messaggi contenente il nome del servizio e i parametri di ingresso. La classe deve parimenti preoccuparsi di realizzare la decodifica di un messaggio o di una sequenza di messaggi;
+\item \emph{Realizzazione}: le classi derivate dalla classe base servizio si occuperanno di realizzare il servizio, ad esempio chiamando metodi di altre classi, oppure implementando il codice in proprio. Tali classi vanno scritte dal programmatore di uno specifico service provider e non fanno parte della libreria.
+\end{itemize}
+
+Per ogni classe derivata da Service, ci sarà una classe \textbf{Response} che si occupa di codificare la risposta. Essa avrà metodi per codificare e trasmettere i parametri di uscita (da parte del service provider) e per riceverli e decodificarli (da parte del client).
+
+La libreria inoltre contiene funzioni per:
+\begin{itemize}
+\item Settare globalmente l'indirizzo e la porta del registro dei servizi
+\item Registrare un servizio presso il registro dei servizi
+\item De-registrare un servizio presso il registro dei servizi
+\item Cancellare un service provider dal registro dei servizi
+\item Richiedere l'indirizzo di un service provider al registro dei servizi
+\end{itemize}
+
+\subsubsection{Registro dei servizi}
+Il registro dei servizi deve essere realizzato in maniera indipendente dalla particolare applicazione e dai particolari service provider, in modo da poter essere riutilizzato in qualunque momento.
+
+\subsubsection{Applicazione}
+Dopo aver realizzato la libreria, essa va testata realizzando due semplici istanze di service provider. Il primo service provider realizza i seguenti due servizi:
+\begin{itemize}
+\item \texttt{RotateImage(in int direction, in buffer img1, out buffer img2)}\par
+Prende in ingresso un'immagine JPG e la ruota.
+\item \texttt{HorizontalFlipImage(in buffer img, out buffer img2)}\par
+Prende in ingresso un'immagine JPG e ne produce una speculare, scambiando destra con sinistra.
+\end{itemize}
+
+Il secondo service provider realizza un semplice storage per delle immagini, associando
+un nome ad un’immagine. I due servizi forniti sono:
+\begin{itemize}
+\item \texttt{StoreImage(in string name, in buffer img)}\par
+Conserva in memoria una certa immagine associata ad un nome;
+\item \texttt{GetImage(in string name, out buffer img)}\par
+Restituisce l'immagine associata al nome specificato nel parametro in ingresso;
+\item \texttt{GetList(out buffer list}\par
+Restituisce la lista dei nomi delle immagini memorizzate nel buffer list.
+\end{itemize}
+
+Inoltre, va realizzato un client che ciclicamente:
+\begin{enumerate}
+\item legga un file JPG a caso dal disco, oppure lo legga dal secondo provider (ancora una volta a caso);
+\item ne chieda la rotazione o il flip (a caso) al primo provider,
+\item e cerchi di memorizzarlo sul secondo provider con nome pari al nome del file.
+\end{enumerate}
+
+L'applicazione finale vede in esecuzione il registro dei servizi, i due service providers, e 5 client. Prevedere almeno 5 file JPG diversi (delle foto vanno bene).
+Per realizzare il primo service provider, è possibile utilizzare una libreria open source esistente. Ce ne sono molte, eccone alcune di esempio:
+\begin{itemize}
+\item The CImg Library;%
+  \footnote{Link: \url{http://cimg.sourceforge.net/}.}
+\item Leptonica;%
+  \footnote{Link: \url{http://code.google.com/p/leptonica/}.}
+\item Image Magick%
+  \footnote{Link: \url{http://www.imagemagick.org/script/index.php}.}
+  and Magick C++ API.%
+  \footnote{Link: \url{http://www.imagemagick.org/script/magick++.php?ImageMagick=5bcjsoq1di68polhr6muajas91}.}
+\end{itemize}
+Per realizzare il secondo service provider, utilizzare la politica di locking lettori/scrittori per permettere a più clienti contemporaneamente di leggere una immagine, mentre i client che vogliono sovrascrivere un'immagine devono prendere un lock esclusivo.
+\endgroup
+\clearpage
+
+
+\section{Presentazione del lavoro}
+
+Il progetto è stato svolto in C++, secondo lo standard C++11, usando i seguenti strumenti:
+\begin{itemize}
+\item la suite di programmi GCC (in particolare \file{g++} e \file{ar}), per la compilazione, il collegamento e l'assemblaggio della libreria statica;
+\item \file{make}, per automatizzare la compilazione dei sorgenti gestendo in maniera efficace le dipendenze tra i file;
+\item \file{doxygen}, per generare la documentazione HTML a partire dai sorgenti.
+\end{itemize}
+
+L'elenco seguente schematizza l'organizzazione in cartelle dei file sorgente:
+\begin{itemize}
+\item \file{libssoa/}\par
+Contiene i file sorgenti della libreria.
+\item \file{libssoa-test/}\par
+Contiene alcuni test sulla libreria.
+\item \file{ssoa-registry/}\par
+Contiene i file sorgenti del registry.
+\item \file{ssoa-registry-test/}\par
+Contiene alcuni test sul registry.
+\item \file{ssoa-imagemanipulationprovider/}\par
+Contiene il codice del primo service provider.
+\item \file{ssoa-storageprovider/}\par
+Contiene il codice del secondo service provider.
+\item \file{ssoa-client/}\par
+Contiene il codice del client richiesto.
+\item \file{doc/}\par
+Conterrà la documentazione prodotta da Doxygen.
+\item \file{bin/}\par
+Conterrà i file eseguibili.
+\item \file{lib/}\par
+Conterrà la libreria statica \file{libssoa.a}.
+\item \file{Doxyfile}\par
+È il file di configurazione per Doxygen.
+\item \file{Makefile}\par
+È il \emph{makefile} usato per compilare i sorgenti tramite il programma \file{make}.
+\end{itemize}
+
+\paragraph{La libreria \file{libssoa}.}
+Il codice della libreria è strutturato in alcune sottocartelle e numerosi file. Le due sottocartelle principali sono:
+\begin{itemize}
+\item \file{libssoa/api/}\par
+Contiene le classi che costituiscono l'API (\emph{Application Programming Interface}) della libreria, utili sia agli utilizzatori finali dell'architettura sia ai programmatori che vogliono implementare un service provider o un registry.
+\item \file{libssoa/src/}\par
+Contiene tutto il codice sorgente che costituisce la libreria, il quale viene compilato producendo, all'interno della cartella \file{lib/}, una libreria a collegamento statico (\file{libssoa.a}).
+\end{itemize}
+
+\paragraph{Il registry.}
+La cartella \file{ssoa-registry/} contiene l'implementazione di un registry.
+
+\paragraph{I service provider.}
+I sorgenti di ciascun provider sono organizzati in due cartelle principali, secondo la seguente struttura:
+\begin{itemize}
+\item \file{ssoa-\meta{nome}provider/api/}\par
+Contiene l'API (\emph{Application Programming Interface}) offerta dal service provider, costituita da un insieme di classi che possono essere usate dai client per richiederne in maniera semplice e ad alto livello i servizi. Tipicamente consistono in file \file{.h} o \file{.hpp}, in modo da non richiedere \emph{linking} con librerie statiche o dinamiche da parte dei client.
+\item \file{ssoa-\meta{nome}provider/src/}\par
+Contiene l'implementazione effettiva del service provider.
+\end{itemize}
+
+\paragraph{Il client.}
+La cartella \file{ssoa-client/} contiene l'implementazione del client richiesto dalle specifiche.
+
+
+\subsection{Compilazione}
+
+La compilazione dell'intero progetto viene gestita mediante il programma GNU \file{make} usando un singolo \emph{makefile}. La tabella seguente presenta i \emph{target} definiti all'interno del \emph{makefile}, indicando per ognuno di essi l'output prodotto o l'operazione eseguita:
+\begin{center}
+\small
+\begin{tabular}{cll}
+\toprule
+\bf Gruppo & \bf Target & \bf Output \\
+\midrule
+\file{all}  & \file{library}         & \file{lib/libssoa.a} \\
+\file{all}  & \file{registry}        & \file{bin/ssoa-registry} \\
+\file{all}  & \file{storageprovider} & \file{bin/ssoa-storageprovider} \\
+\file{all}  & \file{imagemanipulationprovider} & \file{bin/ssoa-imagemanipulationprovider} \\
+\file{all}  & \file{client}          & \file{bin/ssoa-client} \\
+\file{test} & \file{test-library}    & \file{bin/libssoa-test} \\
+\file{test} & \file{test-registry}   & \file{bin/ssoa-registry-test} \\
+--          & \file{documentation}   & \file{doc/html/...}\\
+--          & \file{clean}           & Rimuove i file oggetto e delle dipendenze \\
+--          & \file{distclean}       & Rimuove tutti i file generati \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Per compilare l'intero progetto (la libreria, il registry, i due service provider e il client), è sufficiente dare da terminale il comando
+\begin{lstlisting}[language=]
+name@host:ssoa$ make all
+\end{lstlisting}
+oppure
+\begin{lstlisting}[language=]
+name@host:ssoa$ make all test
+\end{lstlisting}
+se si vogliono compilare anche i test. Con il comando:
+\begin{lstlisting}[language=]
+name@host:ssoa$ make documentation
+\end{lstlisting}
+viene invece prodotta da \file{doxygen} la documentazione in formato HTML.
+
+L'intero progetto è stato compilato e testato usando:
+\begin{lstlisting}[language=]
+name@host:ssoa$ g++ --version 
+g++ (Ubuntu/Linaro 4.8.1-10ubuntu9) 4.8.1
+\end{lstlisting}
+
+\begin{lstlisting}[language=]
+name@host:ssoa$ ar --version 
+GNU ar (GNU Binutils for Ubuntu) 2.23.52.20130913
+\end{lstlisting}
+
+Le librerie richieste per la compilazione dei sorgenti possono essere risolte, su un sistema Debian/Ubuntu recente, installando i pacchetti:
+\begin{itemize}
+\item \file{libboost-dev} \file{libboost-filesystem-dev} \file{libboost-program-options-dev} \file{libboost-regex-dev} \file{libboost-system-dev} \file{libboost-thread-dev}
+\item \file{libyaml-cpp-dev}
+\item \file{libjpeg-dev}
+\item \file{libboost-test-dev} (\emph{richiesto solo per i test}).
+\end{itemize}
+
+In particolare, sono state usate le seguenti versioni delle librerie:
+\begin{lstlisting}[language=]
+name@host:ssoa$ dpkg -s libboost-dev | grep 'Version'
+Version: 1.53.0.0ubuntu2
+name@host:ssoa$ dpkg -s libyaml-cpp-dev | grep "Version"
+Version: 0.3.0-1
+name@host:ssoa$ dpkg -s libjpeg-dev | grep "Version"
+Version: 8c-2ubuntu8
+\end{lstlisting}
+
+
+
+\subsection{Esecuzione}
+
+Tutti i binari sono generati all'interno della cartella \file{bin/}, nella quale sono anche posti degli script per semplificarne l'esecuzione nelle fasi di test. Lanciando, su terminali diversi, i comandi:
+\begin{lstlisting}[language=]
+bin/run-registry
+bin/run-storageprovider
+bin/run-imagemanipulationprovider
+bin/run-client1
+bin/run-client2
+bin/run-client3
+bin/run-client4
+bin/run-client5
+\end{lstlisting}
+viene riprodotto lo scenario richiesto dalle specifiche: il registry e i service provider si mettono in ascolto all'indirizzo di \emph{loopback} su porte predefinite, e il client li interroga ciclicamente richiedendo alcuni servizi. Naturalmente, è necessario che il registry sia eseguito prima dei provider.
+
+Invocando direttamente i file binari, è possibile specificare in dettaglio le opzioni desiderate, secondo quanto illustrato dagli output dei singoli programmi.
+
+\foreach \binary in
+  {ssoa-registry, ssoa-storageprovider, ssoa-imagemanipulationprovider, ssoa-client} {
+   \immediate\write18{echo 'name@host:ssoa$ \binary\space --help' > \binary-help.txt}
+   \immediate\write18{../bin/\binary\space --help >> \binary-help.txt}
+   \lstinputlisting[language=]{\binary-help.txt}
+}
+
+
+\section{Implementazione di un service provider}
+
+La libreria fornisce delle classi che permettono di implementare un service provider in maniera agevole ed efficace. Tra le varie classi di supporto fornite, vi è infatti anche un \code|ServiceListener| che si occupa di ascoltare su una porta, accettare le connessioni provenienti dai client e smistarle secondo il servizio richiesto. I passi richiesti per implementare un nuovo service provider sono concettualmente semplici:
+\begin{itemize}
+\item Per ciascun servizio offerto, si dovranno compiere due operazioni di base:
+\begin{enumerate}
+\item Implementare lo \emph{skeleton} del servizio, ovvero una classe che estenda \code|ssoa::ServiceSkeleton|. Questa classe si occuperà di analizzare i parametri in ingresso (già deserializzati), eseguire la logica per l'espletamento del servizio e produrre un \code|Response| che sarà rispedito (a carico della libreria) al client.
+\item (Opzionale ma fortemente consigliato.) Implementare lo \emph{stub} del servizio, ovvero una classe molto breve (tipicamente un singolo file \file{.h} o \file{.hpp}) che estenda \code|ssoa::ServiceStub|. Tale classe verrà resa disponibile come API del service provider ai clienti che vogliano usare il servizio, affinché abbiano un'interfaccia comoda e naturale di invocarlo.
+\end{enumerate}
+
+\item Si dovrà, naturalmente, scrivere il \file{main}, all'interno del quale si provveda a:
+\begin{enumerate}
+\item inizializzare la libreria;
+\item installare presso lo smistatore locale lo \emph{skeleton} di ciascun servizio offerto, in modo che possa essere istanziato e invocato automaticamente quando richiesto dai client;
+\item registrare ciascun servizio offerto presso il registry, in modo da renderne l'indirizzo noto ai client che ne facciano richiesta;
+\item creare un'istanza del \code|ServiceListener| ed eseguirlo: d'ora in poi esso si occuperà di accettare e smistare le richieste dei clienti.
+\end{enumerate}
+\end{itemize}
+
+Supponendo di voler implementare un service provider che fornisca il servizio “StoreImage”, i listati seguenti mostrano lo \emph{skeleton} e lo \emph{stub} del servizio (in versioni semplificate), nonché la struttura del \file{main} del service provider.
+
+\begin{lstlisting}
+// storeimageserviceimpl.h
+
+// Classe skeleton
+class StoreImageServiceImpl: public ssoa::ServiceSkeleton
+{
+public:
+    static const char * serviceSignature() {
+        return "StoreImage(in string, in buffer)";
+    }
+
+    // Metodo statico invocato in fase di deserializzazione
+    static ssoa::ServiceSkeleton * create(arg_deque&& arguments) {
+        StoreImageServiceImpl * s = new StoreImageServiceImpl(...);
+        // Si costruisce un'istanza con gli argomenti già deserializzati
+        return s;
+    }
+
+    // Installa il servizio per permettere che venga istanziato su richiesta
+    static void install() {
+        factory().install(serviceSignature(), create);
+    }
+
+    // Si occupa di implementare il servizio
+    virtual ssoa::Response * invoke();
+};
+\end{lstlisting}
+
+\begin{lstlisting}
+// storeimageserviceimpl.cpp
+
+Response * StoreImageServiceImpl::invoke()
+{
+    // Legge gli argomenti
+    unique_ptr<ServiceStringArgument> name(popArgument<ServiceStringArgument>());
+    unique_ptr<ServiceBufferArgument> buffer(popArgument<ServiceBufferArgument>());
+
+    // Esegue le operazioni per realizzare il servizio richiesto
+    StorageService::saveFile(name->getValue(), buffer->getValue());
+
+    // Produce un Response
+    return new Response(serviceSignature(), true, "OK");
+}
+\end{lstlisting}
+
+
+\begin{lstlisting}
+// storeimageservice.hpp
+
+// Classe stub
+class StoreImageService: public ssoa::ServiceStub
+{
+public:
+    // Fornisce un'interfaccia semplice e naturale al client,
+    // occupandosi di generare gli argomenti da inviare al service provider,
+    // ricevere un Response e decodificarlo
+    bool invoke(std::string name, std::vector<byte> buffer) {
+        pushArgument(new ssoa::ServiceStringArgument(name));
+        pushArgument(new ssoa::ServiceBufferArgument(buffer));
+
+        std::unique_ptr<ssoa::Response> response(ssoa::ServiceStub::submit());
+        status = response->getStatus();
+        return response->isSuccessful();
+    }
+
+    // ...
+};
+\end{lstlisting}
+
+
+\begin{lstlisting}
+// main.cpp
+
+#include <storeimageserviceimpl.h>
+#include <ssoa/registry/registry.h>
+#include <ssoa/service/servicelistener.h>
+#include <ssoa/utils.h>
+// ...
+
+using namespace ssoa;
+// ...
+
+int main(int argc, char* argv[])
+{
+    string localAddress, localPort;
+    string registryAddress, registryPort;
+    int numThreads;
+    int status = 0;
+
+    // Analisi delle opzioni passate a riga di comando
+    // ...
+
+    // Inizializzazione della libreria
+    ssoa::setup();
+
+    // Inizializzazione dello stub locale per l'interazione col registry
+    Registry::initialize(registryAddress, registryPort);
+
+    // Installazione dei servizi presso lo smistatore locale
+    StoreImageServiceImpl::install();
+    // ...
+    
+    // Registrazione dei servizi presso il registry
+    Registry::registerService(StoreImageServiceImpl::serviceSignature(),
+        localAddress, localPort);
+    // ...
+
+    // Inizializazione ed esecuzione del server
+    ServiceListener server(localAddress, localPort, numThreads);
+    server.run();
+
+    // Deregistrazione dei servizi presso il registry
+    Registry::deregisterService(StoreImageServiceImpl::serviceSignature(),
+        localAddress, localPort);
+    // ...
+
+    return status;
+}
+\end{lstlisting}
+
+
+\section{Uso della libreria da parte dei client}
+
+Per usare le funzionalità offerte dalla libreria, un client deve sostanzialmente compiere le seguenti operazioni:
+\begin{itemize}
+\item includere gli \emph{header} di interesse tra quelli della libreria (tipicamente per l'uso del registry);
+\item includere gli \emph{header} contenenti gli \emph{stub} dei servizi che si intende utilizzare, offerti come API dai service provider;
+\item inizializzare la libreria e lo \emph{stub} locale per il registry.
+\end{itemize}
+
+A questo punto è sufficiente, per ciascun servizio che si intende invocare, chiedere al registry l'indirizzo di un service provider che lo implementa:
+\begin{lstlisting}
+    pair<string, string> hostAndPort = Registry::getProvider(signature);
+\end{lstlisting}
+e creare un'istanza dello \emph{stub} per il servizio:
+\begin{lstlisting}
+    StoreImageService storeImage(hostAndPort.first, hostAndPort.second);
+\end{lstlisting}
+
+L'implementazione (da parte dei service provider) e l'uso (da parte dei client) dello \emph{stub} non è richiesto obbligatoriamente. Infatti, come previsto, ciascun servizio può esser offerto da più di un service provider. Ciascun service provider, tuttavia, può proporre un'interfaccia più adatta o naturale, per esempio sovraccaricando l'operatore \code|()| o gestendo in maniera specializzata i messaggi di stato.
+\begin{lstlisting}
+    storeImage.invoke(name, buffer);
+    ...
+    storeImage(name, buffer);
+\end{lstlisting}
+
+Il listato che segue riporta lo schema di massima di un generico client che fa uso del servizio \code|StoreImage|.
+
+\begin{lstlisting}
+// main.cpp
+
+// Inclusione degli header della libreria
+#include <ssoa/registry/registry.h>
+#include <ssoa/utils.h>
+// Inclusione degli header forniti come API dei service provider di interesse
+#include <storageprovider/storeimageservice.h>
+
+using namespace ssoa;
+
+int main(int argc, char *argv[])
+{
+    string registryAddress, registryPort;
+
+    // Analisi delle opzioni passate a riga di comando
+    // ...
+
+    // Inizializzazione della libreria
+    ssoa::setup();
+
+    // Inizializzazione dello stub locale per l'interazione col registry
+    Registry::initialize(registryAddress, registryPort);
+
+    string name = `\meta{nome di un file}';
+    vector<byte> buffer = readWholeFile(name);
+
+    string signature = StoreImageService::serviceSignature();
+    pair<string, string> hostAndPort = Registry::getProvider(signature);
+    StoreImageService storeImage(hostAndPort.first, hostAndPort.second);
+    if (!storeImage.invoke(name, buffer)) {
+        cerr << "Cannot store image on server." << endl;
+        cerr << "  Returned status: " << storeImage.getStatus() << endl;
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
+}
+\end{lstlisting}
+
+\end{document}

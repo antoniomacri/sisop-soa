@@ -44,7 +44,7 @@ bool readRandomFileFromDisk(string& filename, vector<byte>& buffer)
         }
     }
     if (files.size() == 0) {
-        cerr << "No image found in folder \"" << imageFolder << "\"." << endl;
+        Logger::error("No image found in folder '%1%'.", imageFolder);
         return false;
     }
 
@@ -88,13 +88,13 @@ bool readRandomFileFromStorageProvider(string& name, vector<byte>& buffer)
 
     vector<string> list;
     if (!getList.invoke(list)) {
-        cerr << "Cannot retrieve list of images from the server." << endl;
-        cerr << "  Returned status: " << getList.getStatus() << endl;
+        Logger::error("Cannot retrieve list of images from the server.");
+        Logger::error("  Returned status: %1%", getList.getStatus());
         return false;
     }
 
     if (list.size() == 0) {
-        cerr << "No image available on the storage provider." << endl;
+        Logger::error("No image available on the storage provider.");
         return false;
     }
 
@@ -103,8 +103,8 @@ bool readRandomFileFromStorageProvider(string& name, vector<byte>& buffer)
     pair = Registry::getProvider(GetImageService::serviceSignature());
     GetImageService getImage(pair.first, pair.second);
     if (!getImage.invoke(name, buffer)) {
-        cerr << "Cannot retrieve image \"" << name << "\" from the server." << endl;
-        cerr << "  Returned status: " << getImage.getStatus() << endl;
+        Logger::error("Cannot retrieve image '%1%' from the server.", name);
+        Logger::error("  Returned status: %1%", getImage.getStatus());
         return false;
     }
 
@@ -160,68 +160,67 @@ int main(int argc, char *argv[])
 
     try {
         while (true) {
-            cout << endl;
             sleep(1);
 
             string name;
             std::vector<byte> buffer;
             if (rand() & 1) {
-                cout << "Retrieving an image from disk..." << endl;
+                Logger::info("Retrieving an image from disk...");
                 if (!readRandomFileFromDisk(name, buffer)) {
                     continue;
                 }
             }
             else {
-                cout << "Retrieving an image from the storage provider..." << endl;
+                Logger::info("Retrieving an image from the storage provider...");
                 if (!readRandomFileFromStorageProvider(name, buffer)) {
                     continue;
                 }
             }
-            cout << "Selected image '" << name << "'." << endl;
+            Logger::info("Selected image '%1%'.", name);
 
             if (rand() & 1) {
                 string signature(RotateImageService::serviceSignature());
-                cout << "Requesting service \"" << signature << "\" to registry..." << endl;
+                Logger::info("Requesting service '%1%' to registry...", signature);
                 pair<string, string> pair = Registry::getProvider(signature);
-                cout << "Response received (host: " << pair.first << ", port: " << pair.second << ")." << endl;
+                Logger::info("Response received (host: %1%, port: %2%).", pair.first, pair.second);
                 RotateImageService rotateImage(pair.first, pair.second);
                 int degrees = rand() % 360;
-                cout << "Rotating image by " << degrees << " degrees..." << endl;
+                Logger::info("Rotating image by %1% degrees...", degrees);
                 if (!rotateImage.invoke(degrees, buffer, buffer)) {
-                    cerr << "Cannot rotate image on server." << endl;
-                    cerr << "  Returned status: " << rotateImage.getStatus() << endl;
+                    Logger::error("Cannot rotate image on server.");
+                    Logger::error("  Returned status: %1%", rotateImage.getStatus());
                     continue;
                 }
             }
             else {
                 string signature(HorizontalFlipImageService::serviceSignature());
-                cout << "Requesting service \"" << signature << "\" to registry..." << endl;
+                Logger::info("Requesting service '%1%' to registry...", signature);
                 pair<string, string> pair = Registry::getProvider(signature);
-                cout << "Response received (host: " << pair.first << ", port: " << pair.second << ")." << endl;
+                Logger::info("Response received (host: %1%, port: %2%).", pair.first, pair.second);
                 HorizontalFlipImageService hflipImage(pair.first, pair.second);
-                cout << "Flipping image horizontally..." << endl;
+                Logger::info("Flipping image horizontally...");
                 if (!hflipImage.invoke(buffer, buffer)) {
-                    cerr << "Cannot flip image on server." << endl;
-                    cerr << "  Returned status: " << hflipImage.getStatus() << endl;
+                    Logger::error("Cannot flip image on server.");
+                    Logger::error("  Returned status: %1%", hflipImage.getStatus());
                     continue;
                 }
             }
 
             string signature(StoreImageService::serviceSignature());
-            cout << "Requesting service \"" << signature << "\" to registry..." << endl;
+            Logger::info("Requesting service '%1%' to registry...", signature);
             pair<string, string> pair = Registry::getProvider(signature);
-            cout << "Response received (host: " << pair.first << ", port: " << pair.second << ")." << endl;
+            Logger::info("Response received (host: %1%, port: %2%).", pair.first, pair.second);
             StoreImageService storeImage(pair.first, pair.second);
-            cout << "Storing image on server..." << endl;
+            Logger::info("Storing image on server...");
             if (!storeImage.invoke(name, buffer)) {
-                cerr << "Cannot store image on server." << endl;
-                cerr << "  Returned status: " << storeImage.getStatus() << endl;
+                Logger::error("Cannot store image on server.");
+                Logger::error("  Returned status: %1%", storeImage.getStatus());
                 continue;
             }
         };
     }
     catch (const std::exception& e) {
-        cerr << "Caught an exception: " << e.what() << endl;
+        Logger::error("Caught an exception: %1%", e.what());
         return EXIT_FAILURE;
     }
 

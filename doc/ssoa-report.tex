@@ -353,9 +353,13 @@ Invocando direttamente i file binari, è possibile specificare in dettaglio le o
 
 \foreach \binary in
   {ssoa-registry, ssoa-storageprovider, ssoa-imagemanipulationprovider, ssoa-client} {
-   \immediate\write18{echo 'name@host:ssoa$ \binary\space --help' > \binary-help.txt}
-   \immediate\write18{../bin/\binary\space --help >> \binary-help.txt}
-   \lstinputlisting[language=]{\binary-help.txt}
+    \IfFileExists{../bin/\binary}{%
+      \immediate\write18{echo 'name@host:ssoa$ \binary\space --help' > \binary-help.txt}
+      \immediate\write18{../bin/\binary\space --help >> \binary-help.txt}
+      \lstinputlisting[language=]{\binary-help.txt}
+    }{
+      \errmessage{File `../bin/\binary' does not exist}
+    }
 }
 
 

@@ -47,12 +47,17 @@ int main(int argc, char* argv[])
 
     po::options_description description("Allowed options");
     description.add_options()
-        ("help", "Shows this help")
-        ("address,a", po::value<string>(&address)->default_value("127.0.0.1"), "Listens on the given local address")
-        ("port,p", po::value<string>(&port), "Listens on the given local port")
-        ("registry-address,A", po::value<string>(&registryAddress)->default_value("127.0.0.1"), "Specifies the address of the registry")
-        ("registry-port,P", po::value<string>(&registryPort), "Specifies the port of the registry")
-        ("threads,n", po::value<int>(&num_threads)->default_value(10), "Specifies the number of threads in the pool");
+        ("help,h", "Shows this help")
+        ("address,a", po::value<string>(&address)->default_value("127.0.0.1"),
+            "Listens on the given local address")
+        ("port,p", po::value<string>(&port),
+            "Listens on the given local port")
+        ("registry-address,A", po::value<string>(&registryAddress)->default_value("127.0.0.1"),
+            "Specifies the address of the registry")
+        ("registry-port,P", po::value<string>(&registryPort),
+            "Specifies the port of the registry")
+        ("threads,n", po::value<int>(&num_threads)->default_value(10),
+            "Specifies the number of threads in the pool");
 
     po::variables_map vm;
 

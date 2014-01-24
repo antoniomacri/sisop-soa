@@ -117,11 +117,13 @@ int main(int argc, char *argv[])
 
     po::options_description description("Allowed options");
     description.add_options()
-        ("help", "Shows this help")
+        ("help,h", "Shows this help")
         ("registry-address,A", po::value<string>(&registryAddress)->default_value("127.0.0.1"),
-         "Specifies the address of the registry")
-        ("registry-port,P", po::value<string>(&registryPort), "Specifies the port of the registry")
-        ("image-folder,f", po::value<string>(&imageFolder), "Specifies the folder containing images");
+            "Specifies the address of the registry")
+        ("registry-port,P", po::value<string>(&registryPort),
+            "Specifies the port of the registry")
+        ("image-folder,f", po::value<string>(&imageFolder),
+            "Specifies the folder containing images");
 
     po::variables_map vm;
 

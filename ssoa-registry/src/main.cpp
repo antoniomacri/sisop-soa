@@ -2,7 +2,8 @@
  *  main.cpp
  */
 
-#include <registrylistener.h>
+#include <registryimpl.h>
+#include <ssoa/registry/registrylistener.h>
 
 #include <iostream>
 
@@ -61,8 +62,11 @@ int main(int argc, char* argv[])
         // Initialize the library
         ssoa::setup();
 
+        // Create an instance of the registry.
+        RegistryImpl registry;
+
         // Initialize and run the server until stopped.
-        ssoa::RegistryListener server(address, port, num_threads);
+        ssoa::RegistryListener server(address, port, num_threads, registry);
         server.run();
     }
     catch (const exception& e) {

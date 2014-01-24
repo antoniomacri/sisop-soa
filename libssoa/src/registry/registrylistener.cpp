@@ -1,8 +1,10 @@
 /*
- * server.cpp
+ * registrylistener.cpp
  */
 
-#include "registrylistener.h"
+#include <ssoa/registry/registrylistener.h>
+
+#include "clienthandler.h"
 
 #include <boost/bind.hpp>
 #include <boost/thread/thread.hpp>
@@ -15,8 +17,9 @@ namespace ssoa
     /// A handler is registered to process termination signals (SIGINT, SIGTERM and, if defined, SIGQUIT)
     /// and let the server quit gracefully. Notice that it is safe to register for the same signal multiple
     /// times in a program, provided all registrations for the specified signal are made through Asio.
-    RegistryListener::RegistryListener(const string& host, const string& port, size_t thread_pool_size) :
-        threadPoolSize(thread_pool_size), signals(ioService), acceptor(ioService), clientHandler()
+    RegistryListener::RegistryListener(
+        const string& host, const string& port, size_t thread_pool_size, IRegistry& registry) :
+        threadPoolSize(thread_pool_size), signals(ioService), acceptor(ioService), clientHandler(), registry(registry)
     {
         signals.add(SIGINT);
         signals.add(SIGTERM);

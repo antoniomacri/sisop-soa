@@ -10,10 +10,13 @@
 #include <boost/asio.hpp>
 #include <boost/noncopyable.hpp>
 
-#include "clienthandler.h"
+#include <ssoa/registry/iregistry.h>
 
 namespace ssoa
 {
+    // Forward declaration.
+    class ClientHandler;
+
     /// Represents the listening registry server.
     class RegistryListener: private boost::noncopyable
     {
@@ -24,9 +27,11 @@ namespace ssoa
         ///        address string. If empty, the loopback address will be used.
         /// @param port A string containing the port number.
         /// @param thread_pool_size The number of threads allocated in the pool.
+        /// @param registry The actual registry implementation.
         ///
         /// @throws boost::system::system_error Thrown on failure.
-        explicit RegistryListener(const std::string& host, const std::string& port, std::size_t thread_pool_size);
+        explicit RegistryListener(const std::string& host, const std::string& port, std::size_t thread_pool_size,
+            IRegistry& registry);
 
         /// Runs the server's io_service loop.
         void run();
@@ -57,7 +62,7 @@ namespace ssoa
         std::shared_ptr<ClientHandler> clientHandler;
 
         /// An instance of the actual registry implementation.
-        RegistryImpl registry;
+        IRegistry& registry;
     };
 }
 

@@ -27,7 +27,7 @@ using namespace boost::asio::ip;
 
 namespace ssoa
 {
-    ClientHandler::ClientHandler(io_service& io_service, RegistryImpl& registry) :
+    ClientHandler::ClientHandler(io_service& io_service, IRegistry& registry) :
         socket(io_service), registry(registry)
     {
     }

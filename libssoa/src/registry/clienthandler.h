@@ -5,7 +5,7 @@
 #ifndef _CLIENTHANDLER_H_
 #define _CLIENTHANDLER_H_
 
-#include <registryimpl.h>
+#include <ssoa/registry/iregistry.h>
 #include <ssoa/registry/registryregistrationrequest.h>
 #include <ssoa/registry/registryservicerequest.h>
 
@@ -22,7 +22,7 @@ namespace ssoa
     {
     public:
         /// Constructs a ClientHandler with the given io_service.
-        explicit ClientHandler(boost::asio::io_service& io_service, RegistryImpl& registry);
+        explicit ClientHandler(boost::asio::io_service& io_service, IRegistry& registry);
 
         /// Gets the socket associated with the connection.
         boost::asio::ip::tcp::socket& getSocket();
@@ -47,7 +47,7 @@ namespace ssoa
         boost::asio::ip::tcp::socket socket;
 
         /// A reference to the actual registry implementation.
-        RegistryImpl& registry;
+        IRegistry& registry;
 
         /// Buffer for incoming data.
         boost::asio::streambuf buffer;

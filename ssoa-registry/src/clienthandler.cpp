@@ -58,12 +58,12 @@ namespace ssoa
             }
             catch (std::runtime_error& e) {
                 // An error dependent on the request (e.g., malformed YAML).
-                Logger::error() << format("Caught runtime_error: %1%.") % e.what() << std::endl;
+                Logger::error("Caught runtime_error: %1%.", e.what());
                 response = RegistryErrorMessage(e.what()).toYaml();
             }
             catch (std::exception& e) {
                 // This should be an internal server error: log it.
-                Logger::error() << format("Caught exception: %1%.") % e.what() << std::endl;
+                Logger::error("Caught exception: %1%.", e.what());
                 response = RegistryErrorMessage(e.what()).toYaml();
             }
 
@@ -73,7 +73,7 @@ namespace ssoa
                                     boost::asio::placeholders::error));
         }
         else {
-            Logger::error() << e.message() << std::endl;
+            Logger::error(e.message());
         }
 
         // If an error occurs then no new asynchronous operations are started. This
@@ -90,7 +90,7 @@ namespace ssoa
             socket.shutdown(tcp::socket::shutdown_both, ignored_ec);
         }
         else {
-            Logger::error() << e.message() << std::endl;
+            Logger::error(e.message());
         }
 
         // No new asynchronous operations are started. This means that all shared_ptr
@@ -124,13 +124,13 @@ namespace ssoa
             else {
                 done = registry.registerService(ServiceSignature(service), host, port);
             }
-            format fmt("%1% <%2%, %3%, %4%> -- <%5%, %6%>");
-            Logger::info() << fmt % (deregister ? "-" : "+") % service % host % port % done % "OK" << std::endl;
+            Logger::info("%1% <%2%, %3%, %4%> -- <%5%, %6%>",
+                         (deregister ? "-" : "+"),
+                         service, host, port, done, "OK");
             return RegistryRegistrationResponse(true, "OK").toYaml();
         }
         catch (const std::exception& e) {
-            format fmt("%1% <%2%, %3%, %4%> -- %5%");
-            Logger::info() << fmt % (deregister ? "-" : "+") % service % host % port % e.what() << std::endl;
+            Logger::info("%1% <%2%, %3%, %4%> -- %5%", (deregister ? "-" : "+"), service, host, port, e.what());
             return RegistryRegistrationResponse(e.what()).toYaml();
         }
     }
@@ -141,11 +141,11 @@ namespace ssoa
         try {
             string host, port;
             if (registry.lookupService(ServiceSignature(service), host, port)) {
-                Logger::info() << format("* %1% -- <%2%, %3%>") % service % host % port << std::endl;
+                Logger::info("* %1% -- <%2%, %3%>", service, host, port);
                 return RegistryServiceResponse(host, port).toYaml();
             }
             else {
-                Logger::info() << format("* %1% -- Not found.") % service << std::endl;
+                Logger::info("* %1% -- Not found.", service);
                 return RegistryServiceResponse("No provider available for the requested service.").toYaml();
             }
         }

@@ -16,7 +16,6 @@
 #include <boost/asio/read.hpp>
 #include <boost/asio/streambuf.hpp>
 #include <boost/bind.hpp>
-#include <boost/format.hpp>
 #include <boost/noncopyable.hpp>
 #include <yaml-cpp/yaml.h>
 
@@ -29,7 +28,6 @@ using boost::asio::buffers_begin;
 using boost::asio::ip::tcp;
 using boost::asio::mutable_buffer;
 using boost::asio::streambuf;
-using boost::format;
 using boost::system::error_code;
 
 namespace ssoa
@@ -44,7 +42,7 @@ namespace ssoa
         }
 
         void start() {
-            Logger::debug() << format("%1% -- Accepted request.") % socket->remote_endpoint() << std::endl;
+            Logger::debug("%1% -- Accepted request.", socket->remote_endpoint());
             async_read_until(
                 *socket.get(),
                 headerBuffer,
@@ -79,12 +77,12 @@ namespace ssoa
     {
         if (e) {
             string message("Cannot receive header: " + e.message());
-            Logger::debug() << format("%1% -- %2%") % socket->remote_endpoint() % message << std::endl;
+            Logger::debug("%1% -- %2%", socket->remote_endpoint(), message);
             sendResponse(new Response(signature, false, message));
             return;
         }
 
-        Logger::debug() << format("%1% -- Header received.") % socket->remote_endpoint() << std::endl;
+        Logger::debug("%1% -- Header received.", socket->remote_endpoint());
 
         try {
             streambuf::const_buffers_type bufs = headerBuffer.data();
@@ -155,14 +153,14 @@ namespace ssoa
     {
         if (e) {
             string message("Cannot receive payload: " + e.message());
-            Logger::debug() << format("%1% -- %2%") % socket->remote_endpoint() % message << std::endl;
+            Logger::debug("%1% -- %2%", socket->remote_endpoint(), message);
             sendResponse(new Response(signature, false, message));
             return;
         }
 
-        Logger::debug() << format("%1% -- Payload received.") % socket->remote_endpoint() << std::endl;
+        Logger::debug("%1% -- Payload received.", socket->remote_endpoint());
 
-        Logger::debug() << format("%1% -- Preparing response.") % socket->remote_endpoint() << std::endl;
+        Logger::debug("%1% -- Preparing response.", socket->remote_endpoint());
         try {
             unique_ptr<ServiceSkeleton> impl(ServiceSkeleton::factory().create(signature, std::move(arguments)));
             sendResponse(impl->invoke());
@@ -178,8 +176,7 @@ namespace ssoa
             r = new Response(signature, false, "Internal server error: produced a NULL response.");
         }
         response.reset(r);
-        format fmt("%1% -- Sending response: %2%");
-        Logger::debug() << fmt % socket->remote_endpoint() % response->getStatus() << std::endl;
+        Logger::debug("%1% -- Sending response: %2%", socket->remote_endpoint(), response->getStatus());
         response->serialize(*socket.get(),
                             boost::bind(&ServiceSkeletonSerializationHelper::onWriteResponse,
                                         shared_from_this(),
@@ -194,7 +191,7 @@ namespace ssoa
             socket->shutdown(tcp::socket::shutdown_both, ignored_ec);
         }
         else {
-            Logger::debug() << e.message() << std::endl;
+            Logger::debug(e.message());
         }
     }
 }

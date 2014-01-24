@@ -56,9 +56,9 @@ namespace ssoa
                                        std::string(": Duplicate initialization for identifier \"")
                                        + className + "\".");
             }
-            std::string s("FactoryBase: in hierarchy '" + hierarchyName +
-                          "' added factory method for '" + className + "'.");
-            Logger::debug() << s << std::endl;
+            Logger::debug("FactoryBase: in hierarchy '%1%' added factory method for '%2%'.",
+                          hierarchyName,
+                          className);
             mappings()[className] = creator;
         }
 

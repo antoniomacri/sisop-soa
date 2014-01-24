@@ -123,7 +123,9 @@ int main(int argc, char *argv[])
         ("registry-port,P", po::value<string>(&registryPort),
             "Specifies the port of the registry")
         ("image-folder,f", po::value<string>(&imageFolder),
-            "Specifies the folder containing images");
+            "Specifies the folder containing images")
+        ("log-marker,l", po::value<string>(&Logger::marker),
+            "Specifies a string printed at the beginning of every log message");
 
     po::variables_map vm;
 

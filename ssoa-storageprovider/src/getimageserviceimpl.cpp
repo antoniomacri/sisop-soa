@@ -20,7 +20,7 @@ namespace storageprovider
 
         vector<unsigned char> buffer;
         StorageService::loadFile(name->getValue(), buffer);
-        Logger::info() << "Retrieved image '" << name->getValue() << "'." << std::endl;
+        Logger::info("Retrieved image '%1%'.", name->getValue());
 
         Response * response = new Response(serviceSignature(), true, "OK");
         response->pushArgument(new ServiceBufferArgument(std::move(buffer)));

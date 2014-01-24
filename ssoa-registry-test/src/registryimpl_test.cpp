@@ -37,18 +37,18 @@ bool init_function()
 {
     pid = fork();
     if (pid == -1) {
-        Logger::error() << "Cannot fork!" << std::endl;
+        Logger::error("Cannot fork!");
         return false;
     }
     if (pid == 0) {
-        Logger::info() << "Running registry..." << std::endl;
+        Logger::info("Running registry...");
         if (execl("ssoa-registry", "ssoa-registry", "-a", REGISTRY_ADDRESS, "-p", REGISTRY_PORT, NULL)) {
-            Logger::info() << "Cannot run registry! Make sure ssoa-registry is in current folder." << std::endl;
+            Logger::info("Cannot run registry! Make sure ssoa-registry is in current folder.");
             return false;
         }
     }
     int seconds = 1;
-    Logger::info() << "Waiting " << seconds << " second(s)..." << std::endl;
+    Logger::info("Waiting %1% second(s)...", seconds);
     sleep(seconds);
     Registry::initialize(REGISTRY_ADDRESS, REGISTRY_PORT);
     return true;
@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
 
     int result = boost::unit_test::unit_test_main(&init_function, argc, argv);
 
-    Logger::info() << "Terminating registry..." << std::endl;
+    Logger::info("Terminating registry...");
     kill(pid, SIGTERM);
 
     return result;

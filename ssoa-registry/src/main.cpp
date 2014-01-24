@@ -31,7 +31,9 @@ int main(int argc, char* argv[])
         ("port,p", po::value<string>(&port),
             "Listens on the given local port")
         ("threads,n", po::value<int>(&num_threads)->default_value(10),
-            "Specifies the number of threads in the pool");
+            "Specifies the number of threads in the pool")
+        ("log-marker,l", po::value<string>(&Logger::marker),
+            "Specifies a string printed at the beginning of every log message");
 
     po::variables_map vm;
 
@@ -64,7 +66,7 @@ int main(int argc, char* argv[])
         server.run();
     }
     catch (const exception& e) {
-        Logger::error() << "Caught an exception: " << e.what() << endl;
+        Logger::error("Caught an exception: %1%", e.what());
         return EXIT_FAILURE;
     }
 

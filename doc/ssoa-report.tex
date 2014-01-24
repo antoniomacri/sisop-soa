@@ -39,6 +39,7 @@
 \lstset{belowcaptionskip=4pt}
 \lstset{basicstyle=\footnotesize\ttfamily, tabsize=4, showstringspaces=false}
 \lstset{frameround=fttt, frame=trb}
+\lstnewenvironment{yaml}{\lstset{language=}}{}
 \addto\captionsitalian{\renewcommand*\lstlistingname{Listato}}
 
 \expandafter\def\expandafter\UrlBreaks\expandafter{\UrlBreaks%
@@ -339,7 +340,6 @@ Version: 8c-2ubuntu8
 \end{lstlisting}
 
 
-
 \subsection{Esecuzione}
 
 Tutti i binari sono generati all'interno della cartella \file{bin/}, nella quale sono anche posti degli script per semplificarne l'esecuzione nelle fasi di test. Lanciando, su terminali diversi, i comandi:
@@ -369,148 +369,6 @@ Nella stessa cartella \file{bin/} si trova anche l'applicazione \file{testcase},
       \errmessage{File `../bin/\binary' does not exist}
     }
 }
-
-
-\section{Implementazione di un service provider}
-
-La libreria fornisce delle classi che permettono di implementare un service provider in maniera agevole ed efficace. Tra le varie classi di supporto fornite, vi è infatti anche un \code|ServiceListener| che si occupa di ascoltare su una porta, accettare le connessioni provenienti dai client e smistarle secondo il servizio richiesto. I passi richiesti per implementare un nuovo service provider sono concettualmente semplici:
-\begin{itemize}
-\item Per ciascun servizio offerto, si dovranno compiere due operazioni di base:
-\begin{enumerate}
-\item Implementare lo \emph{skeleton} del servizio, ovvero una classe che estenda \code|ssoa::ServiceSkeleton|. Questa classe si occuperà di analizzare i parametri in ingresso (già deserializzati), eseguire la logica per l'espletamento del servizio e produrre un \code|Response| che sarà rispedito (a carico della libreria) al client.
-\item (Opzionale ma fortemente consigliato.) Implementare lo \emph{stub} del servizio, ovvero una classe molto breve (tipicamente un singolo file \file{.h} o \file{.hpp}) che estenda \code|ssoa::ServiceStub|. Tale classe verrà resa disponibile come API del service provider ai clienti che vogliano usare il servizio, affinché abbiano un'interfaccia comoda e naturale di invocarlo.
-\end{enumerate}
-
-\item Si dovrà, naturalmente, scrivere il \file{main}, all'interno del quale si provveda a:
-\begin{enumerate}
-\item inizializzare la libreria;
-\item installare presso lo smistatore locale lo \emph{skeleton} di ciascun servizio offerto, in modo che possa essere istanziato e invocato automaticamente quando richiesto dai client;
-\item registrare ciascun servizio offerto presso il registry, in modo da renderne l'indirizzo noto ai client che ne facciano richiesta;
-\item creare un'istanza del \code|ServiceListener| ed eseguirlo: d'ora in poi esso si occuperà di accettare e smistare le richieste dei clienti.
-\end{enumerate}
-\end{itemize}
-
-Supponendo di voler implementare un service provider che fornisca il servizio “StoreImage”, i listati seguenti mostrano lo \emph{skeleton} e lo \emph{stub} del servizio (in versioni semplificate), nonché la struttura del \file{main} del service provider.
-
-\begin{lstlisting}
-// storeimageserviceimpl.h
-
-// Classe skeleton
-class StoreImageServiceImpl: public ssoa::ServiceSkeleton
-{
-public:
-    static const char * serviceSignature() {
-        return "StoreImage(in string, in buffer)";
-    }
-
-    // Metodo statico invocato in fase di deserializzazione
-    static ssoa::ServiceSkeleton * create(arg_deque&& arguments) {
-        StoreImageServiceImpl * s = new StoreImageServiceImpl(...);
-        // Si costruisce un'istanza con gli argomenti già deserializzati
-        return s;
-    }
-
-    // Installa il servizio per permettere che venga istanziato su richiesta
-    static void install() {
-        factory().install(serviceSignature(), create);
-    }
-
-    // Si occupa di implementare il servizio
-    virtual ssoa::Response * invoke();
-};
-\end{lstlisting}
-
-\begin{lstlisting}
-// storeimageserviceimpl.cpp
-
-Response * StoreImageServiceImpl::invoke()
-{
-    // Legge gli argomenti
-    unique_ptr<ServiceStringArgument> name(popArgument<ServiceStringArgument>());
-    unique_ptr<ServiceBufferArgument> buffer(popArgument<ServiceBufferArgument>());
-
-    // Esegue le operazioni per realizzare il servizio richiesto
-    StorageService::saveFile(name->getValue(), buffer->getValue());
-
-    // Produce un Response
-    return new Response(serviceSignature(), true, "OK");
-}
-\end{lstlisting}
-
-
-\begin{lstlisting}
-// storeimageservice.hpp
-
-// Classe stub
-class StoreImageService: public ssoa::ServiceStub
-{
-public:
-    // Fornisce un'interfaccia semplice e naturale al client,
-    // occupandosi di generare gli argomenti da inviare al service provider,
-    // ricevere un Response e decodificarlo
-    bool invoke(std::string name, std::vector<byte> buffer) {
-        pushArgument(new ssoa::ServiceStringArgument(name));
-        pushArgument(new ssoa::ServiceBufferArgument(buffer));
-
-        std::unique_ptr<ssoa::Response> response(ssoa::ServiceStub::submit());
-        status = response->getStatus();
-        return response->isSuccessful();
-    }
-
-    // ...
-};
-\end{lstlisting}
-
-
-\begin{lstlisting}
-// main.cpp
-
-#include <storeimageserviceimpl.h>
-#include <ssoa/registry/registry.h>
-#include <ssoa/service/servicelistener.h>
-#include <ssoa/utils.h>
-// ...
-
-using namespace ssoa;
-// ...
-
-int main(int argc, char* argv[])
-{
-    string localAddress, localPort;
-    string registryAddress, registryPort;
-    int numThreads;
-    int status = 0;
-
-    // Analisi delle opzioni passate a riga di comando
-    // ...
-
-    // Inizializzazione della libreria
-    ssoa::setup();
-
-    // Inizializzazione dello stub locale per l'interazione col registry
-    Registry::initialize(registryAddress, registryPort);
-
-    // Installazione dei servizi presso lo smistatore locale
-    StoreImageServiceImpl::install();
-    // ...
-    
-    // Registrazione dei servizi presso il registry
-    Registry::registerService(StoreImageServiceImpl::serviceSignature(),
-        localAddress, localPort);
-    // ...
-
-    // Inizializazione ed esecuzione del server
-    ServiceListener server(localAddress, localPort, numThreads);
-    server.run();
-
-    // Deregistrazione dei servizi presso il registry
-    Registry::deregisterService(StoreImageServiceImpl::serviceSignature(),
-        localAddress, localPort);
-    // ...
-
-    return status;
-}
-\end{lstlisting}
 
 
 \section{Uso della libreria da parte dei client}
@@ -579,5 +437,283 @@ int main(int argc, char *argv[])
     return EXIT_SUCCESS;
 }
 \end{lstlisting}
+
+
+\section{Implementazione di un service provider}
+
+La libreria fornisce delle classi che permettono di implementare un service provider in maniera agevole ed efficace. Tra le varie classi di supporto fornite, vi è infatti anche un \code|ServiceListener| che si occupa di ascoltare su una porta, accettare le connessioni provenienti dai client e smistarle secondo il servizio richiesto. I passi richiesti per implementare un nuovo service provider sono concettualmente semplici:
+\begin{itemize}
+\item Per ciascun servizio offerto, si dovranno compiere due operazioni di base:
+\begin{enumerate}
+\item Implementare lo \emph{skeleton} del servizio, ovvero una classe che estenda \code|ssoa::ServiceSkeleton|. Questa classe si occuperà di analizzare i parametri in ingresso (già deserializzati), eseguire la logica per l'espletamento del servizio e produrre un \code|Response| che sarà rispedito (a carico della libreria) al client.
+\item (Opzionale ma fortemente consigliato.) Implementare lo \emph{stub} del servizio, ovvero una classe molto breve (tipicamente un singolo file \file{.h} o \file{.hpp}) che estenda \code|ssoa::ServiceStub|. Tale classe verrà resa disponibile come API del service provider ai clienti che vogliano usare il servizio, affinché abbiano un'interfaccia comoda e naturale di invocarlo.
+\end{enumerate}
+
+\item Si dovrà, naturalmente, scrivere il \file{main}, all'interno del quale si provveda a:
+\begin{enumerate}
+\item inizializzare la libreria;
+\item installare presso lo smistatore locale lo \emph{skeleton} di ciascun servizio offerto, in modo che possa essere istanziato e invocato automaticamente quando richiesto dai client;
+\item registrare ciascun servizio offerto presso il registry, in modo da renderne l'indirizzo noto ai client che ne facciano richiesta;
+\item creare un'istanza del \code|ServiceListener| ed eseguirlo: d'ora in poi esso si occuperà di accettare e smistare le richieste dei clienti.
+\end{enumerate}
+\end{itemize}
+
+Supponendo di voler implementare un service provider che fornisca il servizio “StoreImage”, i listati seguenti mostrano lo \emph{skeleton} e lo \emph{stub} del servizio (in versioni semplificate), nonché la struttura del \file{main} del service provider.
+
+\begin{lstlisting}
+// storeimageserviceimpl.h
+
+// Classe skeleton
+class StoreImageServiceImpl: public ssoa::ServiceSkeleton
+{
+public:
+    static const char * serviceSignature() {
+        return "StoreImage(in string, in buffer)";
+    }
+
+    // Metodo statico invocato in fase di deserializzazione
+    static ssoa::ServiceSkeleton * create(arg_deque&& arguments) {
+        StoreImageServiceImpl * s = new StoreImageServiceImpl(...);
+        // Si costruisce un'istanza con gli argomenti già deserializzati
+        return s;
+    }
+
+    // Installa il servizio per permettere che venga istanziato su richiesta
+    static void install() {
+        factory().install(serviceSignature(), create);
+    }
+
+    // Si occupa di implementare il servizio
+    virtual ssoa::Response * invoke();
+};
+\end{lstlisting}
+
+\begin{lstlisting}
+// storeimageserviceimpl.cpp
+
+Response * StoreImageServiceImpl::invoke()
+{
+    // Legge gli argomenti
+    unique_ptr<ServiceStringArgument> name(popArgument<ServiceStringArgument>());
+    unique_ptr<ServiceBufferArgument> buffer(popArgument<ServiceBufferArgument>());
+
+    // Esegue le operazioni per realizzare il servizio richiesto
+    StorageService::saveFile(name->getValue(), buffer->getValue());
+
+    // Produce un Response
+    return new Response(serviceSignature(), true, "OK");
+}
+\end{lstlisting}
+
+\begin{lstlisting}
+// storeimageservice.hpp
+
+// Classe stub
+class StoreImageService: public ssoa::ServiceStub
+{
+public:
+    // Fornisce un'interfaccia semplice e naturale al client,
+    // occupandosi di generare gli argomenti da inviare al service provider,
+    // ricevere un Response e decodificarlo
+    bool invoke(std::string name, std::vector<byte> buffer) {
+        pushArgument(new ssoa::ServiceStringArgument(name));
+        pushArgument(new ssoa::ServiceBufferArgument(buffer));
+
+        std::unique_ptr<ssoa::Response> response(ssoa::ServiceStub::submit());
+        status = response->getStatus();
+        return response->isSuccessful();
+    }
+
+    // ...
+};
+\end{lstlisting}
+
+\begin{lstlisting}
+// main.cpp
+
+#include <storeimageserviceimpl.h>
+#include <ssoa/registry/registry.h>
+#include <ssoa/service/servicelistener.h>
+#include <ssoa/utils.h>
+// ...
+
+using namespace ssoa;
+// ...
+
+int main(int argc, char* argv[])
+{
+    string localAddress, localPort;
+    string registryAddress, registryPort;
+    int numThreads;
+    int status = 0;
+
+    // Analisi delle opzioni passate a riga di comando
+    // ...
+
+    // Inizializzazione della libreria
+    ssoa::setup();
+
+    // Inizializzazione dello stub locale per l'interazione col registry
+    Registry::initialize(registryAddress, registryPort);
+
+    // Installazione dei servizi presso lo smistatore locale
+    StoreImageServiceImpl::install();
+    // ...
+    
+    // Registrazione dei servizi presso il registry
+    Registry::registerService(StoreImageServiceImpl::serviceSignature(),
+        localAddress, localPort);
+    // ...
+
+    // Inizializazione ed esecuzione del server
+    ServiceListener server(localAddress, localPort, numThreads);
+    server.run();
+
+    // Deregistrazione dei servizi presso il registry
+    Registry::deregisterService(StoreImageServiceImpl::serviceSignature(),
+        localAddress, localPort);
+    // ...
+
+    return status;
+}
+\end{lstlisting}
+
+
+\section{Implementazione di un registry}
+
+La libreria fornisce anche delle classi che permettono di implementare velocemente un registry. In particolare, la classe \code|RegistryListener| si occupa di ascoltare su una porta, accettare le connessioni provenienti dai client e invocare le operazioni opportune su una implementazione del registry. Per implementare un server che fa da registry, bisogna eseguire pochi passi:
+\begin{enumerate}
+\item Scrivere una classe che implementi l'interfaccia \code|ssoa::IRegistry|. Questa classe si occuperà di eseguire le operazioni fondamentali del registry, ovvero aggiungere un nuovo service provider all'elenco di quelli noti per un servizio, rimuoverlo, o comunicare a un client l'indirizzo di un service provider che fornisca un servizio richiesto.
+\item Istanziare un oggetto del tipo \code|ssoa::RegistryListener| ed eseguirne il metodo \code|run()|: d'ora in poi esso si occuperà di accettare le richieste dei clienti ed eseguirle invocando i metodi appropriati del registry.
+\end{enumerate}
+
+Il listato seguente ne mostra il codice essenziale.
+
+\begin{lstlisting}
+// Inizializzazione della libreria
+ssoa::setup();
+
+// Creazione di un'istanza dell'effettiva implementazione del registry
+RegistryImpl registry;
+
+// Inizializazione ed esecuzione del server
+ssoa::RegistryListener server(address, port, numThreads, registry);
+server.run();
+\end{lstlisting}
+
+
+\section{Dettagli implementativi}
+
+In questo paragrafo vengono accennati, senza alcuna pretesa di completezza o sistematicità, alcuni aspetti legati all'implementazione dell'architettura.
+
+
+\subsection{Protocollo di comunicazione col registry}
+
+Di seguito vengono mostrati alcuni esempi di messaggi che i service provider e i client si possono scambiare con il registry. Un service provider comunica col registry per annunciare i propri servizi, rendendoli disponibili ai client, oppure per rimuoverli; un client invece contatta il registry per chiedergli come raggiungere (indirizzo IP e porta) un service provider di suo interesse.
+
+I messaggi scambiati col registry possono essere di cinque tipi:
+\begin{itemize}
+\item \code|registration-request|: con cui un provider si registra per un servizio;
+\item \code|registration-response|: usato dal registry per rispondere a un provider che gli ha inviato un \code|registration-request|;
+\item \code|service-request|: con cui un client chiede l'indirizzo di un provider;
+\item \code|service-response|: usato dal registry per rispondere a un client che gli ha inviato un \code|service-request|;
+\item \code|error|: usato nei messaggi di risposta per notificare condizioni di errore (per esempio è stato ricevuto codice YAML non valido oppure si è verificato un errore interno del server).
+\end{itemize}
+
+\subsubsection{Messaggi scambiati con i service provider}
+
+Un provider può fornire servizi differenti su porte diverse, quindi nella richiesta di registrazione che invia al registry comunica anche la porta su cui intende erogare il servizio annunciato. L'indirizzo IP specificato \emph{dovrebbe} coincidere con quello del socket sul quale il registry riceve la richiesta (piccola misura di sicurezza) e il registry \emph{può} rifiutare una richiesta di registrazione se i due indirizzi non coincidono.
+
+Alla ricezione di una richiesta di registrazione come questa:
+\begin{yaml}
+type: registration-request
+service: HorizontalFlipImage (in buffer, out buffer)
+host: 131.114.9.35
+port: 1235
+\end{yaml}
+il registry risponde con un messaggio come il seguente:
+\begin{yaml}
+type: registration-response
+successful: true
+\end{yaml}
+in caso di successo, oppure, in caso di fallimento, inviando un messaggio nella forma:
+\begin{yaml}
+type: registration-response
+succesful: false
+status: Service already registered with different signature.
+\end{yaml}
+Se la richiesta non ha avuto successo, il registry \emph{dovrebbe} indicarne, nel campo \code|status| della risposta, il motivo. In risposta a una richiesta di registrazione, inoltre, il registry può inviare un messaggio di errore (\code|error|), qualora non sia possibile generare un messaggio di risposta corrispondente alla richiesta, e il client \emph{deve} essere in grado di riceverlo e decodificarlo.
+
+Quando un service provider vuole deregistrare un proprio servizio, invia al registry un messaggio nella forma:
+\begin{yaml}
+type: registration-request
+service: HorizontalFlipImage (in buffer, out buffer)
+host: 131.114.9.35
+port: 1235
+unregister: true
+\end{yaml}
+Se vuole deregistrare tutti i servizi che eroga su una determinata porta, invia un messaggio come il seguente:
+\begin{yaml}
+type: registration-request
+service: *
+host: 131.114.9.35
+port: 1235
+unregister: true
+\end{yaml}
+
+\subsubsection{Messaggi scambiati con i client}
+
+Una tipica richiesta inviata da un client al registry si presenta in questo modo:
+\begin{yaml}
+type: service-request
+service: RotateImage (in int, in buffer, out buffer)
+\end{yaml}
+La corrispondente risposta inviata dal registry al client assume la forma:
+\begin{yaml}
+type: service-response
+succesful: true
+host: 131.114.9.35
+port: 1234
+\end{yaml}
+oppure, in caso di fallimento:
+\begin{yaml}
+type: service-response
+succesful: false
+status: No provider available for the requested service.
+\end{yaml}
+Se la richiesta non ha avuto successo, il registry \emph{dovrebbe} indicarne, nel campo \code|status| della risposta, il motivo. In risposta a una richiesta di servizio, inoltre, il registry può inviare un messaggio di errore (\code|error|), qualora non sia possibile generare un messaggio di risposta corrispondente alla richiesta, e il client \emph{deve} essere in grado di riceverlo e decodificarlo.
+
+
+\subsection{Protocollo di comunicazione tra i provider e i client}
+
+La comunicazione tra un client e un service provider avviene attraverso due messaggi: il primo è una richiesta di servizio, il secondo la risposta. Entrambi possono contenere degli argomenti; nella richiesta il client inserisce quelli di input, mentre la risposta contiene gli argomenti di output generati dal server.
+
+La struttura di un messaggio, sia di richiesta che di risposta, è costituita da un'intestazione terminata da un \emph{null-character} (`\string\0') e un blocco dati (\emph{payload}), immediatamente a seguire, che contiene gli argomenti (può eventualmente essere assente se non ci sono argomenti da inviare):
+\begin{lstlisting}[language=]
+`\meta{header}'\0`\meta{payload}'
+\end{lstlisting}
+
+Per un messaggio di richiesta, l'intestazione ha la seguente forma:
+\begin{yaml}
+service: RotateImage (in int, in buffer, out buffer)
+blocks: [ 4, 403912 ]
+\end{yaml}
+È costituita dalla firma del servizio e da un vettore contenente la dimensione di ciascun argomento di input inviato.
+
+In una risposta, invece, sono elencate le dimensioni degli argomenti di output. Inoltre, sono contenuti anche altri campi relativi all'esito dell'operazione:
+\begin{yaml}
+service: RotateImage (in int, in buffer, out buffer)
+succesful: true
+status: OK
+blocks: [ 560231 ]
+\end{yaml}
+In caso di esito negativo, l'intero \emph{payload} con gli argomenti può essere omesso e il blocco delle dimensioni esser lasciato vuoto:
+\begin{yaml}
+service: RotateImage (in int, in buffer, out buffer)
+succesful: false
+status: Image format not supported.
+blocks: [ ]
+\end{yaml}
+
 
 \end{document}

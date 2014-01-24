@@ -228,6 +228,8 @@ Contiene il codice del primo service provider.
 Contiene il codice del secondo service provider.
 \item \file{ssoa-client/}\par
 Contiene il codice del client richiesto.
+\item \file{testcase/}\par
+Contiene il codice del test di esecuzione richiesto.
 \item \file{doc/}\par
 Conterrà la documentazione prodotta da Doxygen.
 \item \file{bin/}\par
@@ -264,6 +266,9 @@ Contiene l'implementazione effettiva del service provider.
 \paragraph{Il client.}
 La cartella \file{ssoa-client/} contiene l'implementazione del client richiesto dalle specifiche.
 
+\paragraph{Il test di esecuzione.}
+La cartella \file{testcase/} contiene l'implementazione di una piccola applicazione che si occupa di eseguire gli altri programmi così come richiesto dalle specifiche. Può essere usata per avviare in un colpo solo (e in ordine) il registry, i due service provider e cinque client, facendo sì che interagiscano correttamente e mostrino il loro output su uno stesso terminale.
+
 
 \subsection{Compilazione}
 
@@ -281,6 +286,7 @@ La compilazione dell'intero progetto viene gestita mediante il programma GNU \fi
 \file{all}  & \file{client}          & \file{bin/ssoa-client} \\
 \file{test} & \file{test-library}    & \file{bin/libssoa-test} \\
 \file{test} & \file{test-registry}   & \file{bin/ssoa-registry-test} \\
+--          & \file{testcase}        & \file{bin/testcase} \\
 --          & \file{documentation}   & \file{doc/html/...}\\
 --          & \file{report}          & Compone questo report \\
 --          & \file{clean}           & Rimuove i file oggetto e delle dipendenze \\
@@ -347,9 +353,11 @@ bin/run-client3
 bin/run-client4
 bin/run-client5
 \end{lstlisting}
-viene riprodotto lo scenario richiesto dalle specifiche: il registry e i service provider si mettono in ascolto all'indirizzo di \emph{loopback} su porte predefinite, e il client li interroga ciclicamente richiedendo alcuni servizi. Naturalmente, è necessario che il registry sia eseguito prima dei provider.
+viene riprodotto lo scenario richiesto dalle specifiche: il registry e i service provider si mettono in ascolto all'indirizzo di \emph{loopback} su porte predefinite, e il client li interroga ciclicamente richiedendo alcuni servizi. Naturalmente, è necessario che il registry sia eseguito prima dei provider e, possibilmente, i provider prima dei client.
 
-Invocando direttamente i file binari, è possibile specificare in dettaglio le opzioni desiderate, secondo quanto illustrato dagli output dei singoli programmi.
+Nella stessa cartella \file{bin/} si trova anche l'applicazione \file{testcase}, che può essere usata per avviare in un colpo solo gli eseguibili elencati qui sopra. Gli output prodotti vengono tutti mostrati nello stesso terminale, ma a ciascun programma è associato un colore diverso, permettendone il riconoscimento.
+
+È d'altronde possibile invocare direttamente i file binari. In questo modo si possono specificare in dettaglio le opzioni desiderate, secondo quanto illustrato dagli output dei singoli programmi riportati di seguito.
 
 \foreach \binary in
   {ssoa-registry, ssoa-storageprovider, ssoa-imagemanipulationprovider, ssoa-client} {

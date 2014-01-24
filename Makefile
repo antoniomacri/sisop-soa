@@ -232,6 +232,30 @@ test: $(TEST)
 
 
 ###
+### testcase
+###
+TESTCASE := $(BIN)/testcase
+.PHONY: testcase
+testcase: $(TESTCASE)
+
+TESTCASE_INCLUDES := testcase/src libssoa/api
+TESTCASE_OBJECTS := $(call GETOBJECTS,testcase)
+TESTCASE_DEPS := $(TESTCASE_OBJECTS:.o=.d)
+TESTCASE_LIBS := ssoa
+
+$(TESTCASE): $(REGISTRY) $(IMAGEMANIPULATIONPROVIDER) $(STORAGEPROVIDER) $(CLIENT) $(TESTCASE_OBJECTS)
+	$(call LINK,$(TESTCASE_OBJECTS),$(TESTCASE_LIBS))
+
+testcase/obj/%.o: testcase/src/%.cpp
+	$(call COMPILE,$(TESTCASE_INCLUDES))
+
+-include $(TESTCASE_DEPS)
+
+CLEAN += $(TESTCASE_OBJECTS) $(TESTCASE_DEPS) testcase/obj
+DISTCLEAN += $(TESTCASE) $(BIN)
+
+
+###
 ### documentation
 ###
 .PHONY: documentation

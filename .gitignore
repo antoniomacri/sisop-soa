@@ -6,3 +6,9 @@ obj/
 .project
 .cproject
 doc/*-help.txt
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.toc
+*.pdf

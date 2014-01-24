@@ -242,6 +242,17 @@ DISTCLEAN += $(wildcard doc/html/search/*) $(wildcard doc/html/*) doc/html
 
 
 ###
+### report
+###
+.PHONY: report
+report:
+	cd doc/; pdflatex -shell-escape ssoa-report.tex
+
+CLEAN += $(foreach ext, aux log out synctex.gz toc, doc/ssoa-report.$(ext)) doc/*-help.txt
+DISTCLEAN += doc/ssoa-report.pdf
+
+
+###
 ### Clean
 ###
 .PHONY: clean distclean

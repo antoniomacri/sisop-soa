@@ -56,28 +56,23 @@ Dependencies:
 
 The whole project has been built and tested using:
 
-```
-#!bash
+```bash
 $ g++ --version
 g++ (Ubuntu/Linaro 4.8.1-10ubuntu9) 4.8.1
 ```
-```
-#!bash
+```bash
 $ ar --version
 GNU ar (GNU Binutils for Ubuntu) 2.23.52.20130913
 ```
-```
-#!bash
+```bash
 $ dpkg -s libboost-dev | grep "Version"
 Version: 1.53.0.0ubuntu2
 ```
-```
-#!bash
+```bash
 $ dpkg -s libyaml-cpp-dev | grep "Version"
 Version: 0.3.0-1
 ```
-```
-#!bash
+```bash
 $ dpkg -s libjpeg-dev | grep "Version"
 Version: 8c-2ubuntu8
 ```
@@ -88,15 +83,16 @@ Running
 
 After building the project, all programs are placed in the `bin/` folder. It also contains many scripts which can be used to launch the executables without manually providing all necessary arguments (IP addresses and ports):
 
-    :::bash
-    bin/run-registry
-    bin/run-storageprovider
-    bin/run-imagemanipulationprovider
-    bin/run-client1
-    bin/run-client2
-    bin/run-client3
-    bin/run-client4
-    bin/run-client5
+```bash
+bin/run-registry
+bin/run-storageprovider
+bin/run-imagemanipulationprovider
+bin/run-client1
+bin/run-client2
+bin/run-client3
+bin/run-client4
+bin/run-client5
+```
 
 The executable `bin/testcase` can be used to launch all programs together, showing their outputs in the same terminal: each program will be associated with a different color.
 
@@ -106,8 +102,7 @@ How to use the library in a client
 
 The following listing shows how can be structured the source code of a generic client which uses the “StoreImage” service.
 
-```
-#!cpp
+```cpp
 // main.cpp
 
 // Include library headers
@@ -166,8 +161,7 @@ For example, the following listings show (a simplified version of) the _skeleton
 
 The stub distributed by the provider to clients (a `.hpp` file) has basically just to implement the `invoke()` method.
 
-```
-#!cpp
+```cpp
 // storeimageservice.hpp
 
 // Service stub
@@ -193,8 +187,7 @@ public:
 
 Among the provider's source files there is the skeleton implementation and the `main`.
 
-```
-#!cpp
+```cpp
 // storeimageserviceimpl.h
 
 // Service skeleton
@@ -222,8 +215,7 @@ public:
 };
 ```
 
-```
-#!cpp
+```cpp
 // storeimageserviceimpl.cpp
 
 Response * StoreImageServiceImpl::invoke()
@@ -240,8 +232,7 @@ Response * StoreImageServiceImpl::invoke()
 }
 ```
 
-```
-#!cpp
+```cpp
 // main.cpp
 
 #include <storeimageserviceimpl.h>
@@ -301,8 +292,7 @@ The library provides a set of classes to quickly implement a registry. In partic
 
 The following listing shows the required source code.
 
-```
-#!cpp
+```cpp
 // Initialize the library
 ssoa::setup();
 
@@ -335,68 +325,76 @@ Messages exchanged with the registry are of five types:
 
 Upon receiving a registration request such as:
 
-    :::yaml
-    type: registration-request
-    service: HorizontalFlipImage (in buffer, out buffer)
-    host: 131.114.9.35
-    port: 1235
+```yaml
+type: registration-request
+service: HorizontalFlipImage (in buffer, out buffer)
+host: 131.114.9.35
+port: 1235
+```
 
 if the operation succeeds the registry sends back a response like the following:
 
-    :::yaml
-    type: registration-response
-    successful: true
+```yaml
+type: registration-response
+successful: true
+```
 
 or like the following in case of failure:
 
-    :::yaml
-    type: registration-response
-    succesful: false
-    status: Service already registered with different signature.
+```yaml
+type: registration-response
+succesful: false
+status: Service already registered with different signature.
+```
 
 If the operation is unsuccessful, the registry _should_ inform the provider about the reason by using the `status` field of the response. As a response to a registration request, moreover, the registry can send an `error` message if the `registration-response` cannot be generated, and the provider _must_ be capable to receive and correctly decode it.
 
 When a service provider wants to deregister itselt from a service, it sends to the registry a message in the following form:
 
-    :::yaml
-    type: registration-request
-    service: HorizontalFlipImage (in buffer, out buffer)
-    host: 131.114.9.35
-    port: 1235
-    unregister: true
+```yaml
+type: registration-request
+service: HorizontalFlipImage (in buffer, out buffer)
+host: 131.114.9.35
+port: 1235
+unregister: true
+```
 
 If a provider wants to remove all services it provides on a specific port, it can send to the registry a message like the following:
 
-    :::yaml
-    type: registration-request
-    service: *
-    host: 131.114.9.35
-    port: 1235
-    unregister: true
+```yaml
+type: registration-request
+service: *
+host: 131.114.9.35
+port: 1235
+unregister: true
+```
 
 
 ### Messages exchanged with clients
 
 A tipical request sent by a client to the registry is like the following:
 
-    :::yaml
-    type: service-request
-    service: RotateImage (in int, in buffer, out buffer)
+```yaml
+type: service-request
+service: RotateImage (in int, in buffer, out buffer)
+```
 
 The associated response is something like:
 
-    :::yaml
-    type: service-response
-    succesful: true
-    host: 131.114.9.35
-    port: 1234
+```yaml
+type: service-response
+succesful: true
+host: 131.114.9.35
+port: 1234
+```
 
 or, in case of failure:
 
-    :::yaml
-    type: service-response
-    succesful: false
-    status: No provider available for the requested service.
+```yaml
+type: service-response
+succesful: false
+status: No provider available for the requested service.
+```
 
 If the operation is unsuccessful, the registry _should_ inform the client about the reason by using the `status` field of the response. As a response to a service request, moreover, the registry can send an `error` message if the `service-response` cannot be generated, and the client _must_ be capable to receive and correctly decode it.
 
@@ -406,28 +404,33 @@ Communication protocol between a client and a provider
 
 Both request and response messages exchanged between a client and a provider are composed by a null-terminated header string and an optional data payload, in which are stored all arguments (if present):
 
-    <header>\0<payload>
+```yaml
+<header>\0<payload>
+```
 
 For a request message, the header has the following form:
 
-    :::yaml
-    service: RotateImage (in int, in buffer, out buffer)
-    blocks: [ 4, 403912 ]
+```yaml
+service: RotateImage (in int, in buffer, out buffer)
+blocks: [ 4, 403912 ]
+```
 
 It contains the signature of the requested service and an array with the sizes of all input arguments sent in the payload.
 
 In the context of a response, instead, the array lists the sizes of all output argument sent in the payload. Moreover, other fields are present which carry information about the result of the operation:
 
-    :::yaml
-    service: RotateImage (in int, in buffer, out buffer)
-    succesful: true
-    status: OK
-    blocks: [ 560231 ]
+```yaml
+service: RotateImage (in int, in buffer, out buffer)
+succesful: true
+status: OK
+blocks: [ 560231 ]
+```
 
 In case of failure, the whole payload can be omitted and the `blocks` field left empty:
 
-    :::yaml
-    service: RotateImage (in int, in buffer, out buffer)
-    succesful: false
-    status: Image format not supported.
-    blocks: [ ]
+```yaml
+service: RotateImage (in int, in buffer, out buffer)
+succesful: false
+status: Image format not supported.
+blocks: [ ]
+```
